@@ -1,0 +1,1 @@
+# lib_for_competitive_programming

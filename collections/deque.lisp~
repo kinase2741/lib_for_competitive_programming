@@ -1,8 +1,0 @@
-(defstruct deque
-  (forward nil)
-  (backward nil))
-
-(defmethod append ((q deque) item)
-  (setf (rest (deque-forward q) )
-  (push item (deque-backward q))
-           

@@ -1,0 +1,22 @@
+(defun int->lst (integer)
+  (assert (not (minusp integer)))
+  (labels ((inner (k &optional (acc nil))
+             (if (zerop k)
+                 acc
+                 (inner (truncate k 10)
+                        (cons (rem k 10)
+                              acc)))))
+    (cond
+      ((zerop integer) '(0))
+      ((minusp integer) nil)
+      (t (inner integer)))))
+
+
+(defun lst->int (list)
+  (assert (every (complement #'minusp) list))
+  (labels ((inner (xs &optional (acc 0))
+             (if (null xs)
+                 acc
+                 (inner (rest xs) (+ (* acc 10)
+                                     (first xs))))))
+    (inner list)))

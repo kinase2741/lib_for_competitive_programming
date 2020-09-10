@@ -1,0 +1,11 @@
+(defmethod permutations ((sequence list))
+  (labels ((flat-map (xs)
+             (if (every #'atom-p xs)
+                 (reduce #'append xs)
+                 (apply #'append (flat-map xs))))
+           (permutations-sub (xs &optional acc)
+             (if (null xs)
+                 (reverse (flat-map))
+                 (loop for x in xs collect
+                      (permutations-sub (remove x xs :test #'eq) (cons x acc))))))
+    (permutations-sub sequence)))

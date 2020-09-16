@@ -10,7 +10,7 @@
     ((minusp x) (modint (+ x m)))
     (t (mod x m))))
 
-(declaim (ftype (function (&rest list) fixnum) mod+))
+(declaim (ftype (function (&rest fixnum) fixnum) mod+))
 (defun mod+ (&rest args)
   (declare (inline modint))
   (if (null args)
@@ -18,14 +18,14 @@
       (modint (reduce #'+ args))))
 
 
-(declaim (ftype (function (&rest list) fixnum) mod-))
+(declaim (ftype (function (&rest fixnum) fixnum) mod-))
 (defun mod- (&rest args)
   (declare (inline modint))
   (if (null args)
       0
       (modint (reduce #'- args))))
 
-(declaim (ftype (function (&rest list) fixnum) mod*))
+(declaim (ftype (function (&rest fixnum) fixnum) mod*))
 (defun mod* (&rest args)
   (declare (inline modint))
   (if (null args)
@@ -49,7 +49,7 @@
               (incf u m))
          (return (mod u m)))))
 
-(declaim (ftype (function (&rest list) fixnum) mod/))
+(declaim (ftype (function (&rest fixnum) fixnum) mod/))
 (defun mod/ (&rest args)
   (declare (inline modint))
   (if (null args)

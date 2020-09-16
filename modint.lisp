@@ -1,4 +1,5 @@
-;;; treat int in mod
+;; Utils to treat int in mod. (be sure to set +mod+)
+
 
 (defconstant +mod+ 1000000007)
 

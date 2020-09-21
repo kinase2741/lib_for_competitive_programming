@@ -1,4 +1,4 @@
-(defparameter *default-deque-size* 100)
+ize* 100)
 
 (defstruct deque
   (data nil)

@@ -1,5 +1,9 @@
-;; Utils to treat int in mod. (be sure to set +mod+)
+;;; start inserted contents
 
+
+(defpackage :procon/modint
+  (:use :cl)
+  (:export :modint :mod+ :mod- :mod* :mod/ :mod-pow :mod-inv :mod-binomial)))
 
 (defconstant +mod+ 1000000007)
 
@@ -89,3 +93,9 @@
         (loop for x from 1 to k do
              (setq denom (mod (* denom x) m)))
         (mod (* num (mod-inv denom m)) m))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (use-package :procon/modint :cl-user))
+(in-package :cl-user)
+
+;;; end inserted contents

@@ -3,7 +3,7 @@
     :initarg :parents
     :accessor parents)
    (group-count
-    :initarg ;group-count
+    :initarg :group-count
     :accessor group-count)))
 
 

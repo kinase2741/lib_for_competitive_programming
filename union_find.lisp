@@ -24,12 +24,13 @@
 
 ;;; TODO: modify
 (defmethod uf-show-parents ((uf uf-tree))
-  (map 'vector
-       (lambda (x)
-         (if (minusp x)
-             x
-             (uf-find uf x)))
-       (parents uf)))
+  ;; Return the @arent of each member in list.
+  (mapcar
+   (lambda (i)
+     (if (minusp (aref (parents uf) i))
+         i
+         (uf-find uf (aref (parents uf) i))))
+   (loop for i below (length (parents uf)) collect i)))
   
 
 (defmethod uf-unite ((uf uf-tree) (x fixnum) (y fixnum))

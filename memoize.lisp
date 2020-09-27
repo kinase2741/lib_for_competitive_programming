@@ -20,7 +20,6 @@
     cache))
 
 
-(def-memoized-function f () )
 
 (defun )
 (let ((cache (make-hash-table :test #'equal)))
@@ -43,3 +42,9 @@
                (setf (gethash (list ,@lambda-list) ,cache)
                      (progn
                        ,@body))))))))
+
+(def-memoized-function fib (n)
+  (if (< n 2)
+      n
+      (+ (fib (- n 1))
+         (fib (- n 2)))))

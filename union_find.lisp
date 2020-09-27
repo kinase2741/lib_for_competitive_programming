@@ -21,6 +21,8 @@
       (setf (aref (parents uf) x)
             (uf-find uf (aref (parents uf) x)))))
 
+
+;;; TODO: modify
 (defmethod uf-show-parents ((uf uf-tree))
   (map 'vector
        (lambda (x)

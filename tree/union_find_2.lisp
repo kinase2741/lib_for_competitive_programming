@@ -1,3 +1,5 @@
+;;; Union-Find Tree
+
 (defclass uf-tree ()
   ((parents
     :initarg :parents
@@ -17,7 +19,7 @@
   (if (minusp (aref (parents uf) x))
       x
       (setf (aref (parents uf) x)
-            (uf-find (aref (parents uf) x)))))
+            (uf-find uf (aref (parents uf) x)))))
 
 (defmethod uf-show-parents ((uf uf-tree))
   (map 'vector
@@ -42,9 +44,6 @@
 (defmethod uf-get-tree-size ((uf uf-tree) (x fixnum))
   (- (aref (parents uf) (uf-find uf x))))
 
-
-(defmethod uf-count-trees ((uf uf-tree))
-  (group-count uf))
 
 
 (defmethod uf-friends-p ((uf uf-tree) (x fixnum) (y fixnum))

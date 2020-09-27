@@ -22,9 +22,8 @@
             (uf-find uf (aref (parents uf) x)))))
 
 
-;;; TODO: modify
 (defmethod uf-show-parents ((uf uf-tree))
-  ;; Return the @arent of each member in list.
+  ;; Return the parent of each member in list.
   (mapcar
    (lambda (i)
      (if (minusp (aref (parents uf) i))

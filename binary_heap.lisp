@@ -1,4 +1,6 @@
-;;; binary heap
+;;; Binary heap (1-based)
+;;; This is the port from https://jtra.cz/stuff/lisp/sclr/index.html. Thank you!
+
 
 
 (defclass binary-heap ()

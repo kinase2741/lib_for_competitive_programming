@@ -1,5 +1,5 @@
 ;;; Binary heap (1-based)
-;;; This is the port from https://jtra.cz/stuff/lisp/sclr/index.html. Thank you!
+;;; This is the port from https://yottagin.com/?p=8807.html. Thank you!
 
 
 

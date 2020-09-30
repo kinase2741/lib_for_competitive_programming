@@ -1,8 +1,10 @@
+;;; binary heap
+
+
 (defclass binary-heap ()
   ((heap :initarg :heap
          :accessor heap)
-   (predicate :initform #'<
-              :initarg :predicate
+   (predicate :initarg :predicate
               :reader heap-predicate)
    (heap-count :initarg :count
               :accessor heap-count)

@@ -1,21 +1,26 @@
 ;;; Binary heap (1-based)
-;;; This is the port from https://yottagin.com/?p=8807.html. Thank you!
-
+;;; This is port of https://yottagin.com/?p=8807.html.
 
 
 (defclass binary-heap ()
-  ((heap :initarg :heap
+  ;; 
+  ;; Example: TODO
+  ;;
+  ((heap :type 'array
+         :initarg :heap
          :accessor heap)
    (predicate :initarg :predicate
               :reader heap-predicate)
    (heap-count :initarg :count
-              :accessor heap-count)
+               :accessor heap-count)
    (heap-max-size :initarg :max-size
-                 :accessor heap-max-size)))
+                  :accessor heap-max-size)))
 
-(defun heap-create (max-size &optional (predicate #'<))
+(defun heap-create (max-size &key (predicate #'<) (initial-element nil))
   (make-instance 'binary-heap
-                 :heap (make-array (1+ max-size) :initial-element 0)
+                 :heap (make-array (1+ max-size)
+                                   :initial-element initial-element
+                                   :adjustable nil)
                  :predicate predicate
                  :count 0
                  :max-size max-size))
@@ -42,7 +47,7 @@
                (funcall (heap-predicate heap)
                         (aref (heap heap) index)
                         (aref (heap heap) parent-index)))
-      (rotatef (aref (heap heap) index
+      (rotatef (aref (heap heap) index)
                (aref (heap heap) parent-index))
       (heapify-up heap parent-index))))
 
@@ -52,8 +57,7 @@
 (defmethod heap-extract ((heap binary-heap))
   (when (heap-empty-p heap)
     (error "Heap is empty."))
-  (prog1
-      (heap-peek heap)
+  (prog1 (heap-peek heap)
     (rotatef (aref (heap heap) 1)
              (aref (heap heap) (heap-count heap)))
     (decf (heap-count heap))
@@ -67,8 +71,8 @@
                (<= index-right-child (heap-count heap)))
       (when (funcall (heap-predicate heap)
                      (aref (heap heap) index-right-child)
-                     (aref (heap heap) root-index)
-                     (setf root-index index-right-child)))
+                     (aref (heap heap) root-index))
+        (setf root-index index-right-child))
       (when (funcall (heap-predicate heap)
                      (aref (heap heap) index-left-child)
                      (aref (heap heap) root-index))

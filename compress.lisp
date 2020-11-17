@@ -1,0 +1,32 @@
+(defun gen-compressor (sequence)
+  ;; Generate hash-table that retain {value-in-sequence:compressed-value} from the sequence.
+  (let ((unique-vals (sort (remove 0 (remove-duplicates (map 'vector #'abs sequence))) #'<)))
+    (loop with n = (length unique-vals)
+          for x across (coerce sequence 'vector)
+          with res = (make-hash-table :test #'eql)
+          do
+             (setf (gethash x res)
+                   (if (zerop x)
+                       0
+                       (* (/ x (abs x))
+                          (1+ (sb-int:named-let lower-bound ((lo -1)
+                                                      (hi n))
+                                (if (<= (abs (- lo hi))
+                                        1)
+                                    (1+ lo)
+                                    (let ((mid (floor (+ lo hi)
+                                                      2)))
+                                      (if (< (aref unique-vals mid)
+                                             (abs x))
+                                          (lower-bound mid hi)
+                                          (lower-bound lo mid)))))))))
+          finally
+             (return res))))
+
+(defun compress-sequence (sequence)
+  (let ((compressor (gen-compressor sequence)))
+    (values (map (type-of sequence)
+                 (lambda (x)
+                   (gethash x compressor))
+                 sequence)
+            compressor)))

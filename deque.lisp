@@ -1,5 +1,3 @@
-;; Copy contents to source directly.
-
 
 (defparameter *default-deque-size* 100)
 

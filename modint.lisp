@@ -1,17 +1,11 @@
-;;; start inserted contents
+;;; Beginning of inserted contents
 
-
-(defpackage :procon/modint
-  (:use :cl)
-  (:export :modint :mod+ :mod- :mod* :mod/ :mod-pow :mod-inv :mod-binomial)))
-
-(defconstant +mod+ 1000000007)
+;;; modint functions
 
 (declaim (ftype (function (finxum &optional fixnum) fixnum) modint))
 (defun modint (x &optional (m +mod+))
   (declare (integer x))
   (cond
-    ((and (>= x 0) (< x m)) x)
     ((minusp x) (modint (+ x m)))
     (t (mod x m))))
 
@@ -61,11 +55,10 @@
       0
       (reduce (lambda (x y)
                 (modint (* x (mod-inv y))))
-              args
-              :initial-value 1)))
+              args)))
 
-(declaim (ftype (function (finxum fixnum &optional fixnum) fixnum) mod-pow))
-(defun mod-pow (a n &optional (m +mod+))
+(declaim (ftype (function (finxum fixnum &optional fixnum) fixnum) mod-power))
+(defun mod-power (a n &optional (m +mod+))
   (declare (integer a)
            ((integer 0) n))
   (labels ((sub (a n &optional (res 1))
@@ -94,8 +87,8 @@
              (setq denom (mod (* denom x) m)))
         (mod (* num (mod-inv denom m)) m))))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (use-package :procon/modint :cl-user))
-(in-package :cl-user)
+(define-modify-macro incmodf (&optional (val 1)) (lambda (place val) (mod+ place val)))
+(define-modify-macro decmodf (&optional (val 1)) (lambda (place val) (mod- place val)))
+(define-modify-macro mulmodf (&optional (val 1)) (lambda (place val) (mod* place val)))
+(define-modify-macro divmodf (&optional (val 1)) (lambda (place val) (mod/ place val)))
 
-;;; end inserted contents

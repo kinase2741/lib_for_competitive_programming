@@ -1,5 +1,3 @@
-
-
 (defun ext-gcd (a b x y)
   "ax + by = gcd(a,b) となるような (x,y) を求める"
   (if (zerop b)

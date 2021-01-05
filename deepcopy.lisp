@@ -1,0 +1,8 @@
+(defun clone-table (hash-table)
+  (let ((new-ht (make-hash-table :test (hash-table-test hash-table)
+                                 :size (hash-table-size hash-table))))
+    (maphash (lambda (key val)
+               (setf (gethash key new-ht)
+                     val))
+             hash-table)
+    new-ht))

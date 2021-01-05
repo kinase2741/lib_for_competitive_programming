@@ -1,3 +1,5 @@
+;; BOF
+
 (defun combinations (sequence)
   (flet ((combi-sub (xs b &optional (acc nil))
            (loop for i below (length xs) do
@@ -10,3 +12,4 @@
               (combi-sub sequence b))
             (loop for b below (ash 1 (length sequence)) collect b))))
 
+;; EOF

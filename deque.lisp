@@ -1,16 +1,17 @@
 
 (defparameter *default-deque-size* 100)
 
-(defstruct deque
-  (data nil)
-  (size nil)
-  (head 0)
-  (tail 0)
-  (count 0))
+(defstruct (deque (:conc-name deq-)
+                  (:constructor %make-deque))
+  (data nil :type array)
+  (size nil :type fixnum)
+  (head 0 :type fixnum)
+  (tail 0 :type fixnum)
+  (count 0 :type fixnum))
 
 
-(defun deque-create (&optional (size *default-deque-size*))
-  (make-deque
+(defun make-deque (&optional (size *default-deque-size*))
+  (%make-deque
    :size size
    :data (make-array size)))
 

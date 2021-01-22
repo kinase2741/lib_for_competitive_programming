@@ -8,10 +8,11 @@
            :count-substrings
            :get-lowest-common-prefix))
 
-(defconstant +modulo+ (1- (ash 1 61)))
-(defparameter *base* 1007)
 
 (in-package :rolling-hash-table)
+
+(defconstant +modulo+ (1- (ash 1 61)))
+(defparameter *base* 1007)
 
 (defstruct (rolling-hash-table (:conc-name rhs-)
                                (:constructor %make-rhs))
@@ -60,9 +61,9 @@
          (m (rhs-length rhs-sub)))
     (loop for i of-type fixnum
             from 0 to (- n m)
-          with h1 of-type fixnum = (rhs-get-val rhs-sub 0 m)
+          with h1 of-type fixnum = (get-val rhs-sub 0 m)
           
-          for h2 of-type fixnum = (rhs-get-val rhs-main i (+ i m))
+          for h2 of-type fixnum = (get-val rhs-main i (+ i m))
           when (= h1 h2)
             count i)))
 
@@ -73,8 +74,8 @@
              (if (<= (abs (- ok ng)) 1)
                  ok
                  (let ((mid (ash (+ ok ng) -1)))
-                   (if (= (rhs-get-val rhs idx1 (+ idx1 mid))
-                          (rhs-get-val rhs idx2 (+ idx2 mid)))
+                   (if (= (get-val rhs idx1 (+ idx1 mid))
+                          (get-val rhs idx2 (+ idx2 mid)))
                        (%get-lcp mid ng)
                        (%get-lcp ok mid))))))
     (%get-lcp 0 (- (rhs-length rhs) (max idx1 idx2)))))

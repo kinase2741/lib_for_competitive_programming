@@ -5,22 +5,15 @@
 ;; modint functions
 
 
-(declaim (inline modint)
-         (ftype (function (integer &optional fixnum) fixnum) modint))
+(declaim (inline modint))
 (defun modint (integer &optional (m +mod+))
   (declare (integer integer))
   (loop while (minusp integer)
         do (incf integer m))
-  (the fixnum
-       (if (< integer m)
-           integer
-           (mod integer m))))
-
+  (the fixnum (mod integer m)))
 
 (defmacro define-modulo-operation (fn-name op-long op-short)
   `(progn
-     (declaim (ftype (function (&rest fixnum) fixnum) ,fn-name)
-              (inline ,fn-name))
      (defun ,fn-name (&rest args)
        (reduce (lambda (x y)
                  ,op-long)
@@ -107,9 +100,11 @@
                  (mod-inv (aref table (- n k)))))))
 
 (defconstant +mod+ 1000000007)
-;; (defconstant +mod+ 998244353)
-
+;; (defconstant +mod+ 998244353)           
 
 ;;;
 ;;; End of inserted contents
 ;;;
+
+
+

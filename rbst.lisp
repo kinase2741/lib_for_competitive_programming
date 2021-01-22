@@ -24,6 +24,13 @@
   (r nil)
   (op +e+))
 
+(defmacro with-null-checks ((&rest objs) &body body)
+  `(cond
+     ,@(mapcar (lambda (obj)
+                 `((null ,obj) (error "~a is NIL" ',obj)))
+               objs)
+     (t ,@body)))
+
 (defun make-rbst () nil)
 
 (defun count (rbst)

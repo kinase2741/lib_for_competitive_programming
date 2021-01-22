@@ -1,4 +1,6 @@
-;; BOF
+;;;
+;;; BOF
+;;;
 
 ;; Segment-tree (1-indexed)
 
@@ -103,4 +105,6 @@
 
 (in-package :cl-user)
 
-;; EOF
+;;;
+;;; EOF
+;;;

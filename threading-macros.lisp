@@ -1,0 +1,7 @@
+(macrolet ((nlet (name binds &body body)
+             `(labels ((,name ,(mapcar #'first binds)
+                         ,@body))
+                (funcall #',name ,@(mapcar #'second binds)))))
+  (defmacro -> (init form)
+    (nlet ((f init)
+           ()))))

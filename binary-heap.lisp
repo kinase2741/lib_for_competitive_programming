@@ -4,101 +4,124 @@
 
 ;; Binary heap (1-based)
 
-(defpackage :heap
-  (:shadow :count)
-  (:use :cl)
-  (:export :make-heap :count :empty-p :peek :insert :extract))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun symb (&rest args)
+    (intern
+     (with-output-to-string (s)
+       (dolist (x args)
+         (princ (string-upcase x) s))))))
 
-(in-package :heap)
+;;; TODO
 
-(defstruct (binary-heap (:conc-name heap-)
-                        (:constructor %make-heap))
-  ;; 
-  ;; Example: TODO
-  ;;
-  (dat nil :type vector)
-  (pred nil :type function)
-  (key nil :type function))
+(defmacro define-binary-heap (struct-name &key element-type predicate key-fn key-type init)
+  (let* ((name-str (symbol-name struct-name))
+         (constructor (symb "make-" name-str))
+         (empty-p (symb name-str "-empty-p"))
+         (peek (symb name-str "-peek"))
+         (insert (symb name-str "-insert"))
+         (heapify-up (symb name-str "-heapify-up"))
+         (extract (symb name-str "-extract"))
+         (heapify-down (symb name-str "-heapify-down")))
+    
+    `(progn
+       
+       (defstruct (,struct-name (:constructor ,constructor (size))
+                                (:copier nil))
+         ;; 
+         ;; Example: TODO
+         ;;
+         (data (make-array (the fixnum (+ size 10)) :element-type ',element-type :adjustable nil :initial-element ,init) :type (simple-array ,element-type (*)))
+         (count 0 :type fixnum))
 
-(defun make-heap (size &key (predicate #'<) (key #'identity))
-  (%make-heap :dat (make-array size
-                   :element-type t
-                   :adjustable t
-                   :fill-pointer 1)
-              :pred predicate
-              :key key))
+       (declaim (inline ,empty-p))
+       (defun ,empty-p (heap)
+         (declare (,struct-name heap))
+         (with-slots (data count) heap
+           (declare (ignorable data))
+           (zerop count)))
 
-(defmethod count ((heap binary-heap))
-  (the fixnum (1- (fill-pointer (heap-dat heap)))))
+       (declaim (inline ,insert))
+       (defun ,insert (heap item)
+         (declare (,struct-name heap)
+                  (,element-type item))
+         (with-slots (data count) heap
+           (incf (the fixnum count))
+           (setf (aref data count) item)
+           (,heapify-up heap count)))
 
-(defmethod empty-p ((heap binary-heap))
-  (zerop (count heap)))
+       (defun ,heapify-up (heap node-index)
+         (declare (,struct-name heap)
+                  (fixnum node-index))
+         (with-slots (data count) heap
+           (declare (ignorable count))
+           (let ((parent-index (floor node-index 2)))
+             (declare (fixnum parent-index))
+             (labels ((ordered-p (parent child)
+                        (declare (fixnum parent child))
+                        (the boolean
+                             (,predicate (the ,key-type (,key-fn (aref data parent)))
+                                         (the ,key-type (,key-fn (aref data child)))))))
+               (when (and (plusp parent-index)
+                          (not (ordered-p parent-index
+                                          node-index)))
+                 (rotatef (the ,element-type (aref data node-index))
+                          (the ,element-type (aref data parent-index)))
+                 (,heapify-up heap parent-index))))))
 
-(defmethod insert ((heap binary-heap) item)
-  (vector-push-extend item (heap-dat heap))
-  (heapify-up heap (count heap)))
+       (defun ,peek (heap)
+         (declare (,struct-name heap))
+         (with-slots (data count) heap
+           (declare (ignorable count))
+           (aref data 1)))
 
+       (defun ,extract (heap)
+         (declare (,struct-name heap))
+         (with-slots (data count) heap
+           (when (,empty-p heap)
+             (error "Heap is empty."))
+           (let ((res (aref data 1)))
+             (declare (,element-type res))
+             (prog1 res
+               (setf (aref data 1)
+                     (the ,element-type (aref data count)))
+               (decf (the fixnum count))
+               (,heapify-down heap 1)))))
 
-(defmethod heapify-up ((heap binary-heap)
-                       (node-index fixnum))
-  (with-slots (dat pred key) heap
-    (let ((parent-index (floor node-index 2)))
-      (labels ((ordered-p (pred parent child)
-                 (funcall pred
-                          (funcall key (aref dat parent))
-                          (funcall key (aref dat child)))))
-        (when (and (plusp parent-index)
-                   (not (ordered-p pred
-                                   parent-index
-                                   node-index)))
-          (rotatef (aref dat node-index)
-                   (aref dat parent-index))
-          (heapify-up heap parent-index))))))
+       (defun ,heapify-down (heap root-index)
+         (declare (,struct-name heap)
+                  (fixnum root-index))
+         (with-slots (data count) heap
+           (declare (ignorable count))
+           (let ((root root-index)
+                 (l (* root-index 2))
+                 (r (1+ (* root-index 2))))
+             (declare (fixnum root l r))
+             (labels ((ordered-p (p c)
+                        (declare (fixnum p c))
+                        (the boolean
+                             (,predicate (the ,element-type (,key-fn (aref data p)))
+                                         (the ,element-type (,key-fn (aref data c))))))
+                      (swap! (x y)
+                        (rotatef (the ,element-type (aref data x))
+                                 (the ,element-type (aref data y)))))
+               (cond ((and (<= l count)
+                           (or (> r count)
+                               (ordered-p l r))
+                           (not (ordered-p root l)))
+                      (swap! root l)
+                      (,heapify-down heap l))
+                     ((and (<= r count)
+                           (not (ordered-p root r)))
+                      (swap! root r)
+                      (,heapify-down heap r))))))))))
 
-(defmethod peek ((heap binary-heap))
-  (aref (heap-dat heap) 1))
-
-(defmethod extract ((heap binary-heap))
-  (with-slots (dat pred key) heap
-    (when (empty-p heap)
-      (error "Heap is empty."))
-    (let ((res (aref dat 1)))
-      (prog1 res
-        (setf (aref dat 1)
-              (aref dat
-                    (count heap)))
-        (vector-pop dat)
-        (heapify-down heap 1)))))
-
-(defmethod heapify-down ((heap binary-heap)
-                         (root-index fixnum))
-  (with-slots (dat pred key) heap
-    (let ((root root-index)
-          (l (* root-index 2))
-          (r (1+ (* root-index 2))))
-      (labels ((ordered-p (pred p c)
-                 (funcall pred
-                          (funcall key (aref dat p))
-                          (funcall key (aref dat c))))
-               (swap! (x y)
-                 (rotatef (aref dat x)
-                          (aref dat y))))
-        (cond ((and (<= l (count heap))
-                    (or (> r (count heap))
-                        (ordered-p pred l r))
-                    (not (ordered-p pred root l)))
-               (swap! root l)
-               (heapify-down heap l))
-              ((and (<= r (count heap))
-                    (not (ordered-p pred root r)))
-               (swap! root r)
-               (heapify-down heap r)))))))
-
-
-(defparameter *default-heap-size* 1000)
-
-(in-package :cl-user)
+(define-binary-heap heap
+  :element-type fixnum
+  :predicate <
+  :key-fn identity
+  :key-type fixnum
+  :init 0)
 
 ;;;
-;;; EOFs
+;;; EOF
 ;;;

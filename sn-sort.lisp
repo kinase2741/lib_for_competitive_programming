@@ -1,7 +1,4 @@
 ;; Sort Network (Ref: "Let Over Lambda" written by Doug Hoyte)
-;; Array-size should be less than 100.
-
-
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun build-butcher-sn (n)
@@ -37,3 +34,6 @@
                                    #2# a))))
                     (build-butcher-sn array-length)))
        ,arr)))
+
+
+

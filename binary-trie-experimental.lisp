@@ -3,87 +3,122 @@
 ;;;
 
 ;; Binary Trie (0-indexed)
-;; make-bt, get-count : O(1)
-;; insert, remove, get-val, get-min, get-max : O(+base+)
 ;; Reference: https://kazuma8128.hatenablog.com/entry/2018/05/06/022654
 
 (in-package :cl-user)
 
-(defpackage :binary-trie
-  (:nicknames :bt)
-  (:use :cl)
-  (:shadow :remove)
-  (:export :make-bt :get-size :empty-p :insert :insert! :remove :remove! :get-element :get-min :get-max :lower-bound :upper-bound :count-value))
-
-(in-package :binary-trie)
-
 (defconstant +base+ 32)
 (defconstant +base-minus+ (1- +base+))
+
+(deftype maybe-trie () '(or null binary-trie))
 
 (defstruct (binary-trie (:conc-name bt-)
                         (:constructor make-bt (&optional (count 0) left right)))
   (count 0 :type fixnum)
-  (left nil :type (or null binary-trie))
-  (right nil :type (or null binary-trie)))
+  (left nil :type maybe-trie)
+  (right nil :type maybe-trie))
 
 
-(defun get-size (bt)
+(defmacro %defun (fn-spec args-spec &body body)
+  `(progn
+     (declaim (ftype (function (,@(mapcar #'second args-spec)) ,(second fn-spec)) ,(first fn-spec)))
+     (defun ,(first fn-spec) (,@(mapcar #'first args-spec))
+       (declare ,@(mapcar (lambda (args)
+                            `(type ,(second args) ,(first args)))
+                          args-spec))
+       (the ,(second fn-spec) ,@body))))
+
+(defmacro %nlet (fn-spec args-spec &body body)
+  ;; (x 1 fixnum)
+  `(labels ((,(first fn-spec) (,@(mapcar #'first args-spec))
+              (declare ,@(mapcar (lambda (args)
+                                   `(type ,(third args) ,(first args)))
+                                 args-spec))
+              (the ,(second fn-spec)
+                   ,@body)))
+     (declare (ftype (function (,@(mapcar #'third args-spec)) ,(second fn-spec)) ,(first fn-spec)))
+     (,(first fn-spec) ,@(mapcar #'second args-spec))))
+
+(declaim (inline get-size empty-p))
+(%defun (get-size fixnum) ((bt maybe-trie))
   (if (null bt)
       0
       (bt-count bt)))
 
-(defun empty-p (bt)
+(%defun (empty-p boolean) ((bt maybe-trie))
   (zerop (get-size bt)))
 
-;; New
-(defun insert! (bt value)
-  (loop for b of-type fixnum from +base-minus+ downto 0
-        with bt-work of-type (or null binary-trie) = bt
-        do (when (null bt-work)
-             (setf bt-work (make-bt)))
-           (incf (bt-count bt-work))
-           (setf bt-work (if (logbitp 0 value)
-                             (bt-right bt-work)
-                             (bt-left bt-work))
-                 value (ash value -1))))
+(%defun (%insert binary-trie) ((bt maybe-trie)
+                               (value fixnum))
+  (%nlet (rec binary-trie) ((b +base-minus+ fixnum)
+                            (bt bt maybe-trie))
+    (let ((bt (or bt (make-bt))))
+      (with-slots (count left right) bt
+        (cond
+          ((minusp b) (or bt (make-bt)))
+          ((logbitp b value)
+           (make-bt (1+ count)
+                    left
+                    (rec (1- b)
+                         right)))
+          (t
+           (make-bt (1+ count)
+                    (rec (1- b)
+                         left)
+                    right)))))))
 
-(defun remove! (bt value)
-  (loop for b of-type fixnum from +base-minus+ downto 0
-        with bt-work of-type (or null binary-trie) = (if (null bt) nil (copy-structure bt))
-        do (decf (bt-count bt-work))
-           (when (empty-p bt-work)
-             (setf bt nil)
-             (return))
-           (setf bt-work (if (logbitp 0 value)
-                             (bt-right bt-work)
-                             (bt-left bt-work))
-                 value (ash value -1))))
+(%defun (%remove maybe-trie) ((bt maybe-trie)
+                              (value fixnum))
+  (%nlet (rec maybe-trie) ((b +base-minus+ fixnum)
+                           (bt bt maybe-trie))
+    (let ((bt (or bt (make-bt))))
+      (with-slots (count left right) bt
+        (cond
+          ((minusp b) bt)
+          ((logbitp b value)
+           (make-bt (1- count)
+                    left
+                    (rec (1- b)
+                         right)))
+          (t
+           (make-bt (1- count)
+                    (rec (1- b)
+                         left)
+                    right)))))))
 
-(defun get-element (bt k)
-  (loop for b from +base-minus+ downto 0
-        with bt-work of-type (or null binary-trie) = (copy-structure bt)
-        with acc of-type fixnum = 0
-        do (let ((m (if (null (bt-left bt-work))
-                        0
-                        (get-size (bt-left bt-work)))))
-             (setf acc (ash acc 1))
-             (if (< k m)
-                 (setf bt-work (bt-left bt-work))
-                 (progn
-                   (setf bt-work (bt-right bt-work)
-                         k (- k m))
-                   (setf acc (logior acc 1)))))
-        finally (return acc)))
+(define-modify-macro insert! (value) (lambda (bt value) (%insert bt value)))
+(define-modify-macro remove! (value) (lambda (bt value) (%remove bt value)))
 
+
+(%defun (get-element fixnum) ((bt maybe-trie)
+                              (k fixnum))
+  (%nlet (rec fixnum) ((b +base-minus+ fixnum)
+                       (bt bt maybe-trie)
+                       (k k fixnum)
+                       (acc 0 fixnum))
+    (let ((bt (or bt (make-bt))))
+      (with-slots (count left right) bt
+        (let ((m (if (null left)
+                     0
+                     (get-size left))))
+          (declare (fixnum m))
+          (cond
+            ((minusp b) acc)
+            ((< k m) (rec (the fixnum (1- b))
+                          left
+                          k
+                          acc))
+            (t (rec (the fixnum (1- b))
+                    right
+                    (- k m)
+                    (logior acc (ash 1 b))))))))))
 
 (declaim (inline get-min get-max))
-(defun get-min (bt)
+(%defun (get-min fixnum) ((bt maybe-trie))
   (get-element bt 0))
 
-(defun get-max (bt)
-  (get-element bt (1- (get-size bt))))
-
-(in-package :cl-user)
+(%defun (get-max fixnum) ((bt maybe-trie))
+  (get-element bt (the fixnum (1- (get-size bt))))) 
 
 ;;;
 ;;; EOF

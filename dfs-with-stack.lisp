@@ -1,0 +1,11 @@
+(defmacro dfs-with-stack ((&rest args) &body body)
+  (let ((stack (gensym)))
+    `(let ((,stack nil))
+       (declare (list ,stack))
+       (push (list ,@(mapcar #'second args)) ,stack)
+       (flet ((call (&rest args)
+                (push args ,stack)))
+         (loop until (null ,stack)
+               for
+               ,(mapcar #'first args) = (pop ,stack)
+               do ,@body)))))

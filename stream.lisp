@@ -4,7 +4,7 @@
 
 (declaim (ftype (function (sequence) simple-base-string) unwrap))
 (defun unwrap (sequence)
-  ;; Ex. (unwrap (list 1 2 3 4 5)) => "1 2 3 4 5"
+  ;; e.g. (unwrap (list 1 2 3 4 5)) => "1 2 3 4 5"
   (let ((*standard-output* (make-string-output-stream :element-type 'base-char)))
     (let ((init nil))
       (declare (boolean init))
@@ -18,7 +18,7 @@
     (coerce (get-output-stream-string *standard-output*) 'simple-base-string)))
 
 (defmacro with-buffered-stdout (&body body)
-  ;; https://competitive12.blogspot.com/2020/03/common-lisp.html
+  ;; Quoted from: https://competitive12.blogspot.com/2020/03/common-lisp.html
   (let ((out (gensym)))
     `(let ((,out (make-string-output-stream :element-type 'base-char)))
        (let ((*standard-output* ,out))
@@ -27,7 +27,7 @@
 
 (declaim (ftype (function * (values fixnum &optional)) read-fixnum))
 (defun read-fixnum (&optional (in *standard-input*))
-  ;; https://competitive12.blogspot.com/2020/03/common-lisp.html
+  ;; Quoted from: https://competitive12.blogspot.com/2020/03/common-lisp.html
   (declare (inline read-byte)
            #-swank (sb-kernel:ansi-stream in))
   (macrolet ((%read-byte ()
@@ -49,15 +49,21 @@
               (setq result (+ (- byte 48) (the (integer 0 #.(floor most-positive-fixnum 10)) (* result 10))))
               (return (if minus (- result) result))))))))
 
+(defun set! (arr count)
+  (dotimes (i count)
+    (setf (aref arr i)
+          (read-fixnum))))
+
 (defun read-base-char (&optional (in *standard-input*) (eof #\Newline))
   (declare (inline read-byte)
-           (stream in)
+           #-swank (sb-kernel:ansi-stream in)
            (base-char eof))
   #+swank (coerce (read-char in nil eof) 'base-char)
   #-swank
-  (the base-char (code-char (the (integer 0 127) (read-byte *standard-input* nil (char-code eof))))))
+  (the base-char (code-char (the (integer 0 127) (read-byte in nil (char-code eof))))))
 
 (defmacro read-line! (&optional (buffer-size 20) (in *standard-input*) (term #\Newline))
+  
   (let ((res (gensym))
         (c (gensym))
         (i (gensym)))

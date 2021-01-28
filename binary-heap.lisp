@@ -10,7 +10,6 @@
      (with-output-to-string (s)
        (dolist (x args)
          (princ (string-upcase x) s))))))
-
 ;;; TODO
 
 (defmacro define-binary-heap (struct-name &key element-type predicate key-fn key-type init)
@@ -33,14 +32,64 @@
          (data (make-array (the fixnum (+ size 10)) :element-type ',element-type :adjustable nil :initial-element ,init) :type (simple-array ,element-type (*)))
          (count 0 :type fixnum))
 
-       (declaim (inline ,empty-p))
+       (declaim (inline ,empty-p ,insert ,heapify-up ,extract ,heapify-down ,peek))
        (defun ,empty-p (heap)
          (declare (,struct-name heap))
          (with-slots (data count) heap
            (declare (ignorable data))
            (zerop count)))
 
-       (declaim (inline ,insert))
+       (defun ,heapify-up (heap node-index)
+         (declare (,struct-name heap)
+                  (fixnum node-index))
+         (with-slots (data count) heap
+           (declare (ignorable count))
+           (loop do
+             (let ((parent-index (floor node-index 2)))
+               (declare (fixnum parent-index))
+               (labels ((ordered-p (parent child)
+                          (declare (fixnum parent child))
+                          (the boolean
+                               (,predicate (the ,key-type (,key-fn (aref data parent)))
+                                           (the ,key-type (,key-fn (aref data child)))))))
+                 (when (or (<= parent-index 0)
+                           (ordered-p parent-index
+                                      node-index))
+                   (return))
+                 (rotatef (the ,element-type (aref data node-index))
+                          (the ,element-type (aref data parent-index)))
+                 (setf node-index parent-index))))))
+
+       (defun ,heapify-down (heap root-index)
+         (declare (,struct-name heap)
+                  (fixnum root-index))
+         (with-slots (data count) heap
+           (declare (ignorable count))
+           (loop do
+             (let ((root root-index)
+                   (l (* root-index 2))
+                   (r (1+ (* root-index 2))))
+               (declare (fixnum root l r))
+               (labels ((ordered-p (p c)
+                          (declare (fixnum p c))
+                          (the boolean
+                               (,predicate (the ,key-type (,key-fn (aref data p)))
+                                           (the ,key-type (,key-fn (aref data c))))))
+                        (swap! (x y)
+                          (rotatef (the ,element-type (aref data x))
+                                   (the ,element-type (aref data y)))))
+                 (cond ((and (<= l count)
+                             (or (> r count)
+                                 (ordered-p l r))
+                             (not (ordered-p root l)))
+                        (swap! root l)
+                        (setf root-index l))
+                       ((and (<= r count)
+                             (not (ordered-p root r)))
+                        (swap! root r)
+                        (setf root-index r))
+                       (t (return))))))))
+       
        (defun ,insert (heap item)
          (declare (,struct-name heap)
                   (,element-type item))
@@ -48,25 +97,6 @@
            (incf (the fixnum count))
            (setf (aref data count) item)
            (,heapify-up heap count)))
-
-       (defun ,heapify-up (heap node-index)
-         (declare (,struct-name heap)
-                  (fixnum node-index))
-         (with-slots (data count) heap
-           (declare (ignorable count))
-           (let ((parent-index (floor node-index 2)))
-             (declare (fixnum parent-index))
-             (labels ((ordered-p (parent child)
-                        (declare (fixnum parent child))
-                        (the boolean
-                             (,predicate (the ,key-type (,key-fn (aref data parent)))
-                                         (the ,key-type (,key-fn (aref data child)))))))
-               (when (and (plusp parent-index)
-                          (not (ordered-p parent-index
-                                          node-index)))
-                 (rotatef (the ,element-type (aref data node-index))
-                          (the ,element-type (aref data parent-index)))
-                 (,heapify-up heap parent-index))))))
 
        (defun ,peek (heap)
          (declare (,struct-name heap))
@@ -85,42 +115,17 @@
                (setf (aref data 1)
                      (the ,element-type (aref data count)))
                (decf (the fixnum count))
-               (,heapify-down heap 1)))))
+               (,heapify-down heap 1))))))))
 
-       (defun ,heapify-down (heap root-index)
-         (declare (,struct-name heap)
-                  (fixnum root-index))
-         (with-slots (data count) heap
-           (declare (ignorable count))
-           (let ((root root-index)
-                 (l (* root-index 2))
-                 (r (1+ (* root-index 2))))
-             (declare (fixnum root l r))
-             (labels ((ordered-p (p c)
-                        (declare (fixnum p c))
-                        (the boolean
-                             (,predicate (the ,element-type (,key-fn (aref data p)))
-                                         (the ,element-type (,key-fn (aref data c))))))
-                      (swap! (x y)
-                        (rotatef (the ,element-type (aref data x))
-                                 (the ,element-type (aref data y)))))
-               (cond ((and (<= l count)
-                           (or (> r count)
-                               (ordered-p l r))
-                           (not (ordered-p root l)))
-                      (swap! root l)
-                      (,heapify-down heap l))
-                     ((and (<= r count)
-                           (not (ordered-p root r)))
-                      (swap! root r)
-                      (,heapify-down heap r))))))))))
+;; e.g. : for Dijkstra algorithm
+;; (node cost)
 
 (define-binary-heap heap
-  :element-type fixnum
+  :element-type list
   :predicate <
-  :key-fn identity
+  :key-fn second
   :key-type fixnum
-  :init 0)
+  :init nil)
 
 ;;;
 ;;; EOF

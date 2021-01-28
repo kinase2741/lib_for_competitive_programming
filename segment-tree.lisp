@@ -18,7 +18,10 @@
                               (:constructor ,(symb "%make-" (symbol-name struct-name))))
        (m nil :type fixnum)
        (data nil :type (simple-array ,element-type (*))))
-     
+
+     (declaim (inline ,(symb "make-" (symbol-name struct-name))
+                      ,(symb (symbol-name struct-name) "-get-val")
+                      ,(symb (symbol-name struct-name) "-update")))
      (defun ,(symb "make-" (symbol-name struct-name)) (size)
        (declare (fixnum size))
        (let ((m (sb-int:named-let rec ((m 1))
@@ -52,6 +55,7 @@
                  finally
                     (return res)))))
 
+     
      (defun ,(symb (symbol-name struct-name) "-update") (seg i val)
        (declare (,struct-name seg)
                 (fixnum i)

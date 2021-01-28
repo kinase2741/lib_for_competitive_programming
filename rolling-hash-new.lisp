@@ -1,18 +1,9 @@
-;; BOF
-
-(defpackage :rolling-hash-table
-  (:nicknames :rhs)
-  (:use :cl)
-  (:export :make-rolling-hash-table
-           :get-val
-           :count-substrings
-           :get-lowest-common-prefix))
-
-
-(in-package :rolling-hash-table)
+;;;
+;;; BOF
+;;;
 
 (defconstant +modulo+ (1- (ash 1 61)))
-(defparameter *base* 1007)
+(defconstant +base+ 1007)
 
 (defstruct (rolling-hash-table (:conc-name rhs-)
                                (:constructor %make-rhs))
@@ -35,54 +26,61 @@
                           :length n)))
       (loop for i of-type fixnum below n
             do (setf (aref (rhs-hash rhs) (1+ i)) (rem (+ (* (aref (rhs-hash rhs) i)
-                                                              *base*)
+                                                             +base+)
                                                            (char-code (char string i)))
                                                        +modulo+)
                      (aref (rhs-pow rhs) (1+ i)) (rem (* (aref (rhs-pow rhs) i)
-                                                         *base*)
+                                                         +base+)
                                                       +modulo+)))
       rhs)))
 
-()
-(defmethod get-val ((rhs rolling-hash-table)
-                    (l fixnum)
-                    (r fixnum))
+(defun get-val (rhs l r)
+  (declare (rolling-hash-table rhs)
+           (fixnum l r))
   (let ((res (- (aref (rhs-hash rhs) r)
                  (rem (* (aref (rhs-hash rhs) l)
                          (aref (rhs-pow rhs) (- r l)))
                       +modulo+))))
-    (if (minusp res)
-        (+ res +modulo+)
-        res)))
+    (declare (fixnum res))
+    (the fixnum
+         (if (minusp res)
+             (+ res +modulo+)
+             res))))
 
-(defmethod count-substrings ((mainstr string)
-                             (substr string))
+(defun count-substrings (mainstr substr)
+  (declare (string mainstr substr))
   (let* ((rhs-main (make-rolling-hash-table mainstr))
          (rhs-sub (make-rolling-hash-table substr))
          (n (rhs-length rhs-main))
          (m (rhs-length rhs-sub)))
-    (loop for i of-type fixnum
-            from 0 to (- n m)
-          with h1 of-type fixnum = (get-val rhs-sub 0 m)
-          
-          for h2 of-type fixnum = (get-val rhs-main i (+ i m))
-          when (= h1 h2)
-            count i)))
+    (declare (rolling-hash-table rhs-main rhs-sub)
+             (fixnum n m))
+    (the fixnum
+         (loop for i of-type fixnum
+               from 0 to (- n m)
+               with h1 of-type fixnum = (get-val rhs-sub 0 m)
+               
+               for h2 of-type fixnum = (get-val rhs-main i (+ i m))
+               when (= h1 h2)
+                 count i))))
 
-(defmethod get-lowest-common-prefix ((idx1 fixnum)
-                                     (idx2 fixnum)
-                                     (rhs rolling-hash-table))
+(defun get-lowest-common-prefix (idx1 idx2 rhs)
+  (declare (fixnum idx1 idx2)
+           (rolling-hash-table rhs))
   (labels ((%get-lcp (ok ng)
-             (if (<= (abs (- ok ng)) 1)
-                 ok
-                 (let ((mid (ash (+ ok ng) -1)))
-                   (if (= (get-val rhs idx1 (+ idx1 mid))
-                          (get-val rhs idx2 (+ idx2 mid)))
-                       (%get-lcp mid ng)
-                       (%get-lcp ok mid))))))
+             (declare (fixnum ok ng))
+             (the fixnum
+                  (if (<= (abs (the fixnum (- ok ng))) 1)
+                      ok
+                      (let ((mid (ash (+ ok ng) -1)))
+                        (declare (fixnum mid))
+                        (if (= (get-val rhs idx1 (the fixnum (+ idx1 mid)))
+                               (get-val rhs idx2 (the fixnum (+ idx2 mid))))
+                            (%get-lcp mid ng)
+                            (%get-lcp ok mid)))))))
     (%get-lcp 0 (- (rhs-length rhs) (max idx1 idx2)))))
 
 
-(in-package :cl-user)
-
-;; EOF
+;;;
+;;; EOF
+;;;

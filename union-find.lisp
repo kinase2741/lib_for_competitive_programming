@@ -13,64 +13,72 @@
 (in-package :union-find)
 
 (defstruct (union-find-tree (:conc-name uf-)
-                            (:constructor %make-uf))
-  (dat nil :type simple-array)
-  (size nil :type fixnum)
-  (count nil :type fixnum))
+                            (:constructor make-uf-tree (size)))
+  (dat (make-array size :element-type 'fixnum
+                        :adjustable nil
+                        :initial-element -1)
+   :type simple-array)
+  (size size :type fixnum)
+  (count size :type fixnum))
 
 
-(defmethod make-uf-tree ((size fixnum))
-  (%make-uf :dat (make-array size :element-type 'fixnum
-                                  :adjustable nil
-                                  :initial-element -1)
-            :size size
-            :count size))
-
-(defmacro ref (uf idx)
-  `(aref (uf-dat ,uf) ,idx))
-
-(defmethod find ((uf union-find-tree)
-                 (x fixnum))
-  (if (minusp (ref uf x))
-      x
-      (setf (ref uf x)
-            (find uf (ref uf x)))))
+(defun find (uf x)
+  (declare (union-find-tree uf)
+           (fixnum x))
+  (with-slots (dat size count) uf
+    (declare (ignorable dat size count))
+    (if (minusp (aref dat x))
+        x
+        (setf (aref dat x)
+              (find uf (aref dat x))))))
 
 
-(defmethod show-parents ((uf union-find-tree))
+(defun show-parents (uf)
   ;; Return the parent of each member in list.
-  (loop for i
-          below (uf-size uf)
-        collect (if (minusp (ref uf i))
-                    i
-                    (find uf (ref uf i)))))
+  #-swank (declare (ignore uf))
+  #+swank
+  (locally (declare (union-find-tree uf))
+    (with-slots (dat size count) uf
+      (declare (ignorable count))
+      (loop for i
+              below size
+            collect (if (minusp (aref dat i))
+                        i
+                        (find uf (aref dat i)))))))
   
 
-(defmethod unite ((uf union-find-tree)
-                  (x fixnum)
-                  (y fixnum))
-  (let ((x-parent (find uf x))
-        (y-parent (find uf y)))
-    (when (> x-parent y-parent)
-      (rotatef x-parent y-parent))
-    (unless (= x-parent y-parent)
-      (incf (ref uf x-parent)
-            (ref uf y-parent))
-      (setf (ref uf y-parent)
-            x-parent)
-      (decf (uf-count uf)))))
+(defmethod unite (uf x y)
+  (declare (union-find-tree uf)
+           (fixnum x y))
+  (with-slots (dat size count) uf
+    (declare (ignore size))
+    (let ((x-parent (find uf x))
+          (y-parent (find uf y)))
+      (declare (fixnum x-parent y-parent))
+      (when (> x-parent y-parent)
+        (rotatef x-parent y-parent))
+      (unless (= x-parent y-parent)
+        (incf (aref dat x-parent)
+              (aref dat y-parent))
+        (setf (aref dat y-parent)
+              x-parent)
+        (decf count)))))
 
-(defmethod get-tree-size ((uf union-find-tree)
-                          (x fixnum))
-  (- (ref uf (find uf x))))
+(defun get-tree-size (uf x)
+  (declare (union-find-tree uf)
+           (fixnum x))
+  (with-slots (dat size count) uf
+    (declare (ignorable size count))
+    (the fixnum (- (aref dat (find uf x))))))
 
-(defmethod friends-p ((uf union-find-tree)
-                      (x fixnum)
-                      (y fixnum))
+(defun friends-p (uf x y)
+  (declare (union-find-tree uf)
+           (fixnum x y))
   (= (find uf x)
      (find uf y)))
 
-(defmethod count-trees ((uf union-find-tree))
+(defun count-trees (uf)
+  (declare (union-find-tree uf))
   (uf-count uf))
 
 (in-package :cl-user)

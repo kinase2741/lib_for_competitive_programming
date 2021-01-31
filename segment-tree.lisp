@@ -20,7 +20,7 @@
        (data nil :type (simple-array ,element-type (*))))
 
      (declaim (inline ,(symb "make-" (symbol-name struct-name))
-                      ,(symb (symbol-name struct-name) "-get-val")
+                      ,(symb (symbol-name struct-name) "-fold")
                       ,(symb (symbol-name struct-name) "-update")))
      (defun ,(symb "make-" (symbol-name struct-name)) (size)
        (declare (fixnum size))
@@ -35,7 +35,7 @@
                                                                        :adjustable nil
                                                                        :initial-element ,e))))
 
-     (defun ,(symb (symbol-name struct-name) "-get-val") (seg l r)
+     (defun ,(symb (symbol-name struct-name) "-fold") (seg l r)
        (declare (,struct-name seg)
                 (fixnum l r))
        (with-slots (m data) seg

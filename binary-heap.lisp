@@ -10,16 +10,20 @@
      (with-output-to-string (s)
        (dolist (x args)
          (princ (string-upcase x) s))))))
-;;; TODO
+
+;; TODO :
+;; - heap-full-p
+;; - invoke error when attempting to insert item to full heap
+
 
 (defmacro define-binary-heap (struct-name &key element-type predicate key-fn key-type init)
   (let* ((name-str (symbol-name struct-name))
          (constructor (symb "make-" name-str))
          (empty-p (symb name-str "-empty-p"))
          (peek (symb name-str "-peek"))
-         (insert (symb name-str "-insert"))
+         (push (symb name-str "-push"))
          (heapify-up (symb name-str "-heapify-up"))
-         (extract (symb name-str "-extract"))
+         (pop (symb name-str "-pop"))
          (heapify-down (symb name-str "-heapify-down")))
     
     `(progn
@@ -29,10 +33,10 @@
          ;; 
          ;; Example: TODO
          ;;
-         (data (make-array (the fixnum (+ size 10)) :element-type ',element-type :adjustable nil :initial-element ,init) :type (simple-array ,element-type (*)))
+         (data (make-array (the fixnum (1+ size)) :element-type ',element-type :adjustable nil :initial-element ,init) :type (simple-array ,element-type (*)))
          (count 0 :type fixnum))
 
-       (declaim (inline ,empty-p ,insert ,heapify-up ,extract ,heapify-down ,peek))
+       (declaim (inline ,empty-p ,push ,heapify-up ,pop ,heapify-down ,peek))
        (defun ,empty-p (heap)
          (declare (,struct-name heap))
          (with-slots (data count) heap
@@ -90,7 +94,7 @@
                         (setf root-index r))
                        (t (return))))))))
        
-       (defun ,insert (heap item)
+       (defun ,push (heap item)
          (declare (,struct-name heap)
                   (,element-type item))
          (with-slots (data count) heap
@@ -104,7 +108,7 @@
            (declare (ignorable count))
            (aref data 1)))
 
-       (defun ,extract (heap)
+       (defun ,pop (heap)
          (declare (,struct-name heap))
          (with-slots (data count) heap
            (when (,empty-p heap)
@@ -118,14 +122,15 @@
                (,heapify-down heap 1))))))))
 
 ;; e.g. : for Dijkstra algorithm
-;; (node cost)
+;; (cost node)
 
 (define-binary-heap heap
   :element-type list
   :predicate <
-  :key-fn second
+  :key-fn first
   :key-type fixnum
   :init nil)
+
 
 ;;;
 ;;; EOF

@@ -1,85 +1,106 @@
-;; BOF
+;;;
+;;; BOF
+;;;
 
 ;; Binary-indexed-tree (1-indexed)
 ;; Reference: http://hos.ac/slides/20140319_bit.pdf
 
-(defpackage :binary-indexed-tree
-  (:nicknames :bit)
-  (:use :cl)
-  (:export :make-binary-indexed-tree
-           :add
-           :get-val
-           :get-range-val
-           :lower-bound))
+(defmacro %defun (fn-spec args-spec &body body)
+  `(progn
+     (declaim (ftype (function (,@(mapcar #'second args-spec)) ,(second fn-spec)) ,(first fn-spec)))
+     (defun ,(first fn-spec) (,@(mapcar #'first args-spec))
+       (declare ,@(mapcar (lambda (args)
+                            `(type ,(second args) ,(first args)))
+                          args-spec))
+       ,@body)))
 
-(in-package :bit)
+(defmacro define-bit (name &key nickname element-type result-type)
+  (flet ((symb (&rest args)
+           (intern
+            (with-output-to-string (s)
+              (let ((*standard-output* s))
+                (mapc #'princ (mapcar #'string-upcase args)))))))
+    (let* ((nickname-str (symbol-name nickname))
+           (conc-name (symb nickname-str "-"))
+           (constructor (symb "make-" nickname-str))
+           (add (symb nickname-str "-add"))
+           (fold (symb nickname-str "-fold"))
+           (fold-range (symb nickname-str "-fold-range"))
+           (lower-bound (symb nickname-str "-lower-bound")))
+      `(progn
+         (defstruct (,name (:conc-name ,conc-name)
+                           (:constructor ,constructor (size)))
+           (size size :type fixnum)
+           (data (make-array (1+ size)
+                             :element-type ',element-type
+                             :adjustable nil
+                             :initial-element 0)
+            :type (simple-array ,element-type (*))))
 
-(defstruct (binary-indexed-tree (:conc-name bit-)
-                                (:constructor %make-bit))
-  (size nil :type fixnum)
-  (dat nil :type (simple-array integer 1)))
+         (declaim (inline ,add ,fold ,fold-range ,lower-bound))
+         (%defun (,add null) ((bit ,name)
+                              (index fixnum)
+                              (val fixnum))
+           (with-slots (size data) bit
+             (assert (<= 1 index size))
+             (loop while (<= index size)
+                   do (incf (aref data index) val)
+                      (incf index (logand index (- index))))))
 
-(defmethod make-binary-indexed-tree ((size fixnum))
-  (%make-bit :size size
-             :dat (make-array (1+ size)
-                              :element-type 'integer
-                              :adjustable nil
-                              :initial-element 0)))
+         (%defun (,fold ,result-type) ((bit ,name)
+                                       (index fixnum))
+           "get sum of value in [1,index)"
+           (with-slots (size data) bit
+             (loop while (plusp index)
+                   with res of-type ,result-type = 0
+                   do (incf res (aref data index))
+                      (decf index (logand index (- index)))
+                   finally (return res))))
 
-(defmethod add ((index fixnum)
-                (x integer)
-                (bit binary-indexed-tree))
-  (assert (<= 1 index (bit-size bit)))
-  (labels ((rec (i)
-             (when (<= i (bit-size bit))
-               (incf (aref (bit-dat bit) i) x)
-               (rec (+ i (logand i (- i)))))))
-    (rec index)))
+         (%defun (,fold-range ,result-type) ((bit ,name)
+                                             (l fixnum)
+                                             (r fixnum))
+           (the ,result-type
+                (- (,fold bit (1- r))
+                   (,fold bit (1- l)))))
+         
+         (%defun (,lower-bound ,result-type) ((bit ,name)
+                                              (w ,result-type))
+           "a_1 + a_2 + ... + a_i >= wとなる最小のiを返す"
+           (with-slots (size data) bit
+             (the ,result-type
+                  (if (<= w 0)
+                      0
+                      (labels ((%get-range (r)
+                                 (declare (fixnum r))
+                                 (the fixnum
+                                      (if (> r size)
+                                          (ash r -1)
+                                          (%get-range (ash r 1)))))
+                               (%lower-bound (range w acc)
+                                 (declare (fixnum range w acc))
+                                 (the fixnum
+                                      (cond ((<= range 0) acc)
+                                            ((and (<= (+ range acc)
+                                                      size)
+                                                  (< (aref data (+ range acc))
+                                                     w))
+                                             (%lower-bound (ash range -1)
+                                                           (- w (aref data (+ range acc)))
+                                                           (+ acc range)))
+                                            (t
+                                             (%lower-bound (ash range -1)
+                                                           w
+                                                           acc))))))
+                        (1+ (%lower-bound (%get-range 1)
+                                          w
+                                          0)))))))))))
 
-(defmethod get-val ((index fixnum)
-                    (bit binary-indexed-tree))
-  "get sum of value in [1,index)"
-  (assert (<= 0 index (bit-size bit)))
-  (labels ((rec (i acc)
-             (if (<= i 0)
-                 acc
-                 (rec (- i (logand i (- i)))
-                      (+ acc
-                         (aref (bit-dat bit) i))))))
-    (rec index 0)))
+(define-bit binary-indexed-tree
+  :nickname bit
+  :element-type fixnum
+  :result-type fixnum)
 
-(defmethod get-range-val ((l fixnum)
-                          (r fixnum)
-                          (bit binary-indexed-tree))
-  (- (get-val (1- r) bit)
-     (get-val (1- l) bit)))
-
-(defmethod lower-bound ((w integer)
-                        (bit binary-indexed-tree))
-  "a_1 + a_2 + ... + a_i >= wとなる最小のiを返す"
-  (if (<= w 0)
-      0
-      (labels ((%get-range (r)
-                 (if (> r (bit-size bit))
-                     (ash r -1)
-                     (%get-range (ash r 1))))
-               (%lower-bound (range w acc)
-                 (cond ((<= range 0) acc)
-                       ((and (<= (+ range acc)
-                                 (bit-size bit))
-                             (< (aref (bit-dat bit) (+ range acc))
-                                w))
-                        (%lower-bound (ash range -1)
-                                      (- w (aref (bit-dat bit) (+ range acc)))
-                                      (+ acc range)))
-                       (t
-                        (%lower-bound (ash range -1)
-                                      w
-                                      acc)))))
-        (1+ (%lower-bound (%get-range 1)
-                          w
-                          0)))))
-
-(in-package :cl-user)
-
-;; EOF
+;;;
+;;; EOF
+;;;

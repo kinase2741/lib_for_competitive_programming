@@ -27,7 +27,6 @@
                             `(type ,(second args) ,(first args)))
                           args-spec))
        (the ,(second fn-spec) ,@body))))
-
 (defmacro %nlet (fn-spec args-spec &body body)
   ;; (x 1 fixnum)
   `(labels ((,(first fn-spec) (,@(mapcar #'first args-spec))

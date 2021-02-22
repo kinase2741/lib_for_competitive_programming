@@ -7,8 +7,8 @@
 
 (in-package :cl-user)
 
-(defconstant +base+ 32)
-(defconstant +base-minus+ (1- +base+))
+(eval-when (:compile-toplevel :load-toplevel)
+  (defparameter *base* 32))
 
 (deftype maybe-trie () '(or null binary-trie))
 
@@ -27,6 +27,8 @@
                             `(type ,(second args) ,(first args)))
                           args-spec))
        (the ,(second fn-spec) ,@body))))
+
+
 (defmacro %nlet (fn-spec args-spec &body body)
   ;; (x 1 fixnum)
   `(labels ((,(first fn-spec) (,@(mapcar #'first args-spec))
@@ -47,47 +49,18 @@
 (%defun (empty-p boolean) ((bt maybe-trie))
   (zerop (get-size bt)))
 
-(%defun (%insert binary-trie) ((bt maybe-trie)
-                               (value fixnum))
-  (%nlet (rec binary-trie) ((b +base-minus+ fixnum)
-                            (bt bt maybe-trie))
-    (let ((bt (or bt (make-bt))))
-      (with-slots (count left right) bt
-        (cond
-          ((minusp b) (or bt (make-bt)))
-          ((logbitp b value)
-           (make-bt (1+ count)
-                    left
-                    (rec (1- b)
-                         right)))
-          (t
-           (make-bt (1+ count)
-                    (rec (1- b)
-                         left)
-                    right)))))))
-
-(%defun (%remove maybe-trie) ((bt maybe-trie)
-                              (value fixnum))
-  (%nlet (rec maybe-trie) ((b +base-minus+ fixnum)
-                           (bt bt maybe-trie))
-    (let ((bt (or bt (make-bt))))
-      (with-slots (count left right) bt
-        (cond
-          ((minusp b) bt)
-          ((logbitp b value)
-           (make-bt (1- count)
-                    left
-                    (rec (1- b)
-                         right)))
-          (t
-           (make-bt (1- count)
-                    (rec (1- b)
-                         left)
-                    right)))))))
-
-(define-modify-macro insert! (value) (lambda (bt value) (%insert bt value)))
-(define-modify-macro remove! (value) (lambda (bt value) (%remove bt value)))
-
+(defmacro insert! (bt value)
+  (loop for b below #.*base*
+        with res = nil
+        do (setf res
+                 `(progn
+                    (when (null ,bt) (setf ,bt (make-bt)))
+                    (incf (bt-count ,bt))
+                    (symbol-macrolet ((,bt (if (logbitp ,b ,value)
+                                               (bt-right ,bt)
+                                               (bt-left ,bt)x)))
+                      ,res)))
+        finally (return res)))
 
 (%defun (get-element fixnum) ((bt maybe-trie)
                               (k fixnum))

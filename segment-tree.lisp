@@ -73,7 +73,6 @@
                                       (aref data (the fixnum (logior 1 (ash i 1)))))))
                       (setf i (the fixnum (ash i -1))))))))))
 
-;; Modify here depending to circumustances
 ;; e.g. Range-Minimum-Query(RMQ)
 (define-segment-tree seg
   :element-type fixnum

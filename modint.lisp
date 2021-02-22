@@ -4,6 +4,8 @@
 
 ;; modint functions
 
+(defconstant +mod+ 1000000007)
+;; (defconstant +mod+ 998244353)
 
 (declaim (inline modint)
          (ftype (function (integer &optional fixnum) fixnum) modint))
@@ -106,8 +108,6 @@
                  (mod-inv (aref table k))
                  (mod-inv (aref table (- n k)))))))
 
-(defconstant +mod+ 1000000007)
-;; (defconstant +mod+ 998244353)
 
 
 ;;;

@@ -1,91 +1,92 @@
-;; Lazy-segment-tree (0-indexed)
-;; Source: https://tsutaj.hatenablog.com/entry/2017/03/30/224339
+;;;
+;;; BOF
+;;;
 
-(defstruct (lazy-segment-tree (:conc-name lseg-))
-  (fn nil :type function)
-  (e nil)
-  (n nil :type fixnum)
-  (node nil :type simple-array)
-  (lazy nil :type simple-array))
+;; Lazy-segment-tree (1-indexed)
 
-(defun gen-lazy-seg-tree (fn e vector)
-  (let ((size (length vector)))
-    (let ((n (sb-int:named-let rec ((n 1))
-               (if (>= n size)
-                   n
-                   (rec (* n 2))))))
-      (let ((lseg (make-lazy-segment-tree :fn fn
-                                          :e e
-                                          :n n
-                                          :node (make-array (1- (* n 2))
-                                                            :element-type (array-element-type vector)
-                                                            :adjustable nil
-                                                            :initial-element e)
-                                          :lazy (make-array (1- (* n 2))
-                                                            :element-type (array-element-type vector)
-                                                            :adjustable nil
-                                                            :initial-element e))))
-        (loop for i of-type fixnum below size do
-          (setf (aref (lseg-node lseg) (+ i n -1))
-                (aref vector i)))
-        (loop for i of-type fixnum
-              from (- n 2)
-              downto 0
-              do (setf (aref (lseg-node lseg) i)
-                       (funcall fn
-                                (aref (lseg-node lseg) (+ (* i 2) 1))
-                                (aref (lseg-node lseg) (+ (* i 2) 2)))))
-        lseg))))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun symb (&rest args)
+    (intern
+     (with-output-to-string (s)
+       (dolist (x args)
+         (princ (string-upcase x) s)))))
+  )
 
-(defun lseg-eval ((k fixnum)
-                 (l fixnum)
-                 (r fixnum)
-                 (lseg lazy-segment-tree))
-  (when (/= (aref (lseg-lazy lseg)
-                  k)
-            (lseg-e lseg))
-    (incf (aref (lseg-node lseg)
-                k)
-          (aref (lseg-lazy lseg)
-                k)))
-  (when (> (- r l) 1)
-    (incf )))
+(defmacro define-lazy-segment-tree (struct-name &key element-type result-type fn e)
+  (let* ((name-str (symbol-name struct-name))
+         (conc-name (symb name-str "-"))
+         (constructor (symb "make-" name-str))
+         (lseg-eval (symb name-str "-eval"))
+         (lseg-fold (symb name-str "-fold"))
+         ))
+  `(progn
+     
+     (defstruct (,struct-name (:conc-name ,conc-name)
+                              (:constructor ,constructor (size)))
+       (m (loop while (< m size)
+                do (setf m (ash m 1))
+                finally (return m))
+        :type fixnum)
+       (data (make-array (ash m 1) :element-type ,element-type
+                                   :initial-element ,e)
+        :type (simple-array ,element-type (*)))
+       (lazy (make-array (ash m 1) :element-type ,element-type
+                                   :initial-element ,e)
+        :type (simple-array ,element-type (*))))
 
-(defmethod seg-update ((idx fixnum)
-                       val
-                       (seg segment-tree))
-  (let ((idx (+ (seg-n seg)
-                idx
-                -1)))
-    (setf (aref (seg-node seg) idx)
-          val)
-    (sb-int:named-let rec ((idx (floor (1- idx) 2)))
-      (when (>= idx 0)
-        (setf (aref (seg-node seg) idx)
-              (funcall (seg-fn seg)
-                       (aref (seg-node seg) (+ (* idx 2) 1))
-                       (aref (seg-node seg) (+ (* idx 2) 2))))
-        (rec (floor (1- idx) 2))))))
+     (declaim (inline ,lseg-eval ,lseg-fold ,lseg-update))
 
-(defmethod seg-get-val ((req-l fixnum)
-                        (req-r fixnum)
-                        (seg segment-tree))
-  (labels ((sub (l r k)
-             (declare (fixnum l r k))
-             (cond ((or (<= r req-l)
-                        (<= req-r l))
-                    (seg-e seg))
-                   ((and (<= req-l l)
-                         (<= r req-r))
-                    (aref (seg-node seg) k))
-                   (t (funcall (seg-fn seg)
-                               (sub l
-                                    (the fixnum (floor (+ l r)
-                                                       2))
-                                    (the fixnum (+ (* k 2) 1)))
-                               (sub (the fixnum (floor (+ l r)
-                                                       2))
-                                    r
-                                    (the fixnum (+ (* k 2) 2))))))))
-    (sub 0 (seg-n seg) 0)))
+     (defun ,lseg-eval (lseg i l r)
+       (declare (,struct-name lseg)
+                (fixnum l r))
+       (when (/= ,e (aref ,lazy))
+         ))
+     
+     (defun ,lseg-fold (lseg l r)
+       (declare (,struct-name lseg)
+                (fixnum l r))
+       (with-slots (m data) lseg
+         (let ((l (+ l (,(symb (symbol-name struct-name) "-m") seg)))
+               (r (+ r (,(symb (symbol-name struct-name) "-m") seg))))
+           (declare (fixnum l r))
+           (loop while (< l r)
+                 with res of-type ,result-type = ,e
+                 when (logbitp 0 l)
+                   do (setf res (,fn res (aref data l)))
+                   and do (incf l)
+                 when (logbitp 0 r)
+                   do (setf res (,fn res (aref data (1- r))))
+                   and do (decf r)
+                 do (setq l (ash l -1))
+                    (setq r (ash r -1))
+                 finally
+                    (return res)))))
 
+     
+     (defun ,(symb (symbol-name struct-name) "-update") (seg i val)
+       (declare (,struct-name seg)
+                (fixnum i)
+                (,element-type val))
+       (with-slots (m data) seg
+         (let ((i (the fixnum (+ i m))))
+           (declare (fixnum i))
+           (setf (aref data i) val)
+           (let ((i (ash i -1)))
+             (declare (fixnum i))
+             (loop while (plusp i)
+                   do (setf (aref data i)
+                            (the ,result-type
+                                 (,fn (aref data (the fixnum (logior 0 (ash i 1))))
+                                      (aref data (the fixnum (logior 1 (ash i 1)))))))
+                      (setf i (the fixnum (ash i -1))))))))))
+
+;; e.g. Range-Minimum-Query(RMQ)
+(define-segment-tree seg
+  :element-type fixnum
+  :result-type fixnum
+  :fn min
+  :e most-positive-fixnum)
+
+;;;
+;;; EOF
+;;;

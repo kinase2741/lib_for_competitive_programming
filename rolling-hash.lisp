@@ -1,4 +1,6 @@
-;; BOF
+;;;
+;;; BOF
+;;;
 
 (defpackage :rolling-hash-table
   (:nicknames :rhs)
@@ -64,7 +66,7 @@
     (loop for i of-type fixnum
             from 0 to (- n m)
           with h1 of-type fixnum = (get-val rhs-sub 0 m)
-          
+
           for h2 of-type fixnum = (get-val rhs-main i (+ i m))
           when (= h1 h2)
             count i)))
@@ -85,4 +87,6 @@
 
 (in-package :cl-user)
 
-;; EOF
+;;;
+;;; EOF
+;;;

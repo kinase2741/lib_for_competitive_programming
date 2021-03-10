@@ -2,7 +2,7 @@
 ;;; BOF
 ;;;
 
-;; substitute for case-macro 
+;; substitute for case-macro
 
 (defmacro match ((keyform &key (test #'equal)) &body cases)
   `(cond
@@ -13,5 +13,5 @@
                cases)))
 
 ;;;
-;;; BOF
+;;; EOF
 ;;;

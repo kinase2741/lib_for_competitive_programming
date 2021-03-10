@@ -71,19 +71,22 @@
   #-swank
   (the base-char (code-char (the (integer 0 127) (read-byte in nil (char-code eof))))))
 
-(defmacro read-line! (&optional (buffer-size 20) (in *standard-input*) (term #\Newline))
-  
-  (let ((res (gensym))
+(defmacro read-line! (simple-base-string &optional (in *standard-input*) (term #\Newline))
+  "Read characters and DESTRUCTIVELY fill SIMPLE-BASE-STRING with them."
+  (let ((n (gensym))
         (c (gensym))
         (i (gensym)))
-    `(let ((,res (load-time-value (make-string ,buffer-size :element-type 'base-char))))
-       (declare (simple-base-string ,res)
-                (inline read-base-char))
-       (loop for ,c of-type base-char = (read-base-char ,in)
-             for ,i of-type fixnum below ,buffer-size
-             until (char= ,c ,term) do (setf (schar ,res ,i)
-                                             ,c))
-       ,res)))
+    `(locally (declare (inline read-base-char))
+       (let ((,n (length ,simple-base-string)))
+         (declare (fixnum ,n))
+         (loop for ,c of-type base-char = (read-base-char ,in #\Newline)
+               with ,i of-type fixnum = 0
+               until (char= ,c ,term)
+               do (unless (< ,i ,n)
+                    (error "Reached the end of ~a." ',simple-base-string))
+                  (setf (schar ,simple-base-string ,i)
+                        ,c)
+                  (incf ,i))))))
 
 (defun split (string &optional (separator #\space))
   (declare (base-string string)

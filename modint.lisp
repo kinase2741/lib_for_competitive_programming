@@ -71,6 +71,7 @@
 (declaim (ftype (function (mint (integer 0)) mint) mod-power)
          (inline mod-power))
 (defun mod-power (base power)
+  "base^power を返す"
   ;; Reference:https://qiita.com/drken/items/3b4fdf0a78e7a138cd9a
   (declare (mint base)
            ((integer 0) power))
@@ -115,7 +116,6 @@
            (mod* (aref table n)
                  (mod-inv (aref table k))
                  (mod-inv (aref table (the mint (- n k))))))))
-
 
 ;;;
 ;;; End of inserted contents

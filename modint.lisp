@@ -4,14 +4,19 @@
 
 ;; modint functions
 
-(define-symbol-macro *mod* 1000000007)
-;; (define-symbol-macro *mod* 998244353)
+;; modの値をここで定義する
 
-(deftype mint () `(integer 0 #.(1- *mod*)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defparameter *mod* 1000000007)
+  ;; (defparameter *mod* 998244353)
+  )
+
+(deftype mint () `(unsigned-byte 32))
 
 (declaim (inline modint)
          (ftype (function (integer) mint) modint))
 (defun modint (integer)
+  "整数を引数に取り*mod*で割ったあまりを返す"
   ;; (integer) -> (mint)
   (declare (integer integer))
   (loop while (minusp integer)
@@ -20,6 +25,24 @@
        (if (< integer *mod*)
            integer
            (mod integer *mod*))))
+
+(declaim (ftype (function (mint) mint) mod-inv))
+(defun mod-inv (a)
+  "Reference:https://qiita.com/drken/items/3b4fdf0a78e7a138cd9a"
+  (declare (mint a)
+           (optimize (speed 3) (safety 2)))
+  (let ((b *mod*)
+        (u 1)
+        (v 0))
+    (declare (fixnum b u v))
+    (loop until (zerop b) do
+      (let ((w (truncate a b)))
+        (declare (fixnum w))
+        (decf a (the fixnum (* w b)))
+        (rotatef a b)
+        (decf u (the fixnum (* w v)))
+        (rotatef u v)))
+    (modint u)))
 
 (defmacro define-modulo-operation (fn-name op-long op-short)
   `(progn
@@ -40,30 +63,10 @@
                    :initial-value (first args))
            form))))
 
-
-
 (define-modulo-operation mod+ (modint (+ x y)) `(modint (+ ,x ,y)))
 (define-modulo-operation mod- (modint (- x y)) `(modint (- ,x ,y)))
 (define-modulo-operation mod* (modint (* x y)) `(modint (* ,x ,y)))
 (define-modulo-operation mod/ (modint (* x (mod-inv y))) `(modint (* ,x (mod-inv ,y))))
-
-(declaim (ftype (function (mint) mint) mod-inv))
-(defun mod-inv (a)
-  "Reference:https://qiita.com/drken/items/3b4fdf0a78e7a138cd9a"
-  (declare (mint a)
-           (optimize (speed 3) (safety 2)))
-  (let ((b *mod*)
-        (u 1)
-        (v 0))
-    (declare (fixnum b u v))
-    (loop until (zerop b) do
-      (let ((w (truncate a b)))
-        (declare (fixnum w))
-        (decf a (the fixnum (* w b)))
-        (rotatef a b)
-        (decf u (the fixnum (* w v)))
-        (rotatef u v)))
-    (modint u)))
 
 (declaim (ftype (function (mint (integer 0)) mint) mod-power)
          (inline mod-power))

@@ -103,7 +103,7 @@
               (= 1 (n-cnt node)))
           nil)
          (:else
-          (assert node)
+          #+swank (assert node)
           (let ((bool (logbitp b val)))
             (make-n (1- (n-cnt node))
                     :l (if bool

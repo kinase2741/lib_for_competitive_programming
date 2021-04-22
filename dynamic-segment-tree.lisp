@@ -14,13 +14,6 @@ TODO:
 - max(格納出来る値のmax)
 |#
 
-(defparameter op-identity 0)
-(defparameter *fn* (lambda (x y) (+ x y)))
-(defparameter *max* (1- (ash 1 32)))
-(defparameter *range-end* (sb-int:named-let rec ((n0 1))
-                            (if (>= n0 *max*)
-                                n0
-                                (rec (ash n0 1)))))
 
 (defmacro define-dynamic-segment-tree (name &key op op-identity max-value element-type result-type)
   (flet ((symb (&rest args)
@@ -43,13 +36,13 @@ TODO:
            (update! (symb name-str "-update!")))
       `(progn
          (defstruct (,name (:conc-name ,conc-name)
-                           (:constructor ,%make-dseg (&key (val op-identity) l r)))
+                           (:constructor ,%make-dseg (&key (val ,op-identity) l r)))
            (val val :type ,element-type)
            (l nil :type (or null ,name))
            (r nil :type (or null ,name)))
 
          (defun ,fold (dseg l r)
-           (,%fold dseg l r 0 *range-end*))
+           (,%fold dseg l r 0 ,range-end))
 
          (defun ,%fold (dseg l r begin end)
            (cond

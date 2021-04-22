@@ -80,9 +80,7 @@ TODO:
          (defmacro ,update! (dseg index value)
            (multiple-value-bind (args argvs val setter getter)
                (get-setf-expansion dseg)
-             (let ((update (intern (concatenate 'string
-                                                ,name-str
-                                                "-UPDATE"))))
+             (let ((update ',update))
                `(let ,(mapcar #'list args argvs)
                   (let ((,@val (,update ,getter ,index ,value)))
                     ,setter)))))

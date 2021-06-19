@@ -47,10 +47,10 @@
 (define-modulo-operation mod* (modint (* x y)) `(modint (* ,x ,y)))
 (define-modulo-operation mod/ (modint (* x (mod-inv y))) `(modint (* ,x (mod-inv ,y))))
 
-(declaim (ftype (function (mint) mint) mod-inv))
+(declaim (ftype (function (fixnum) mint) mod-inv))
 (defun mod-inv (a)
   "Reference:https://qiita.com/drken/items/3b4fdf0a78e7a138cd9a"
-  (declare (mint a)
+  (declare (fixnum a)
            (optimize (speed 3) (safety 2)))
   (let ((b *mod*)
         (u 1)

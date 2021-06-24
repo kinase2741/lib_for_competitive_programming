@@ -1,11 +1,13 @@
 (in-package #:cl-user)
 
 (defpackage #:treap
-  (:use #:cl)
-  (:nicknames (#:tr)))
+  (:use #:cl))
 
 (in-package  #:treap)
 
-#+swank (load "test/treap.lisp")
 
 (in-package #:cl-user)
+
+;; Load file to run tests
+
+#+swank (load (merge-pathnames "test/treap.lisp" (truename ".")))

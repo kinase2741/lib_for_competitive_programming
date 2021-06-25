@@ -1,16 +1,15 @@
-(ql:quickload  :rove :slient t)
+(ql:quickload :fiveam :slient t)
+(pushnew :rove *features*)
 
 (defpackage :test/treap
-  (:use #:cl)
-  (:import-from #:rove))
+  (:use #:cl
+        #:treap)
+  (:import-from #:fiveam))
 
-(in-package  :test/treap)
+(in-package :test/treap)
 
-(rove:deftest conversion
-  (testing "Convert atom treap"
-    (flet ((convert (list)
-             (treap->list (list->treqp (list x))))))
-    (ok (equal (convert (list 1))
-               (list 1)))))
+(rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))
+                (list 1)))
 
-(rove:run-suite *package*)
+(rove:ok (equal (treap::treap->list (treap::list->treap (list 2)))
+                (list 2)))

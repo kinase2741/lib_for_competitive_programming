@@ -1,4 +1,4 @@
-(ql:quickload :fiveam :slient t)
+(ql:quickload :prove :slient t)
 (pushnew :rove *features*)
 
 (defpackage :test/treap
@@ -9,7 +9,6 @@
 (in-package :test/treap)
 
 (let ((prove:*enable-colors* nil))
-
   (let ((l (treap::make-treap 1 :sum 1))
         (r (treap::make-treap 2 :sum 2)))
     (prove:is 2 (treap::%get-cnt l r))

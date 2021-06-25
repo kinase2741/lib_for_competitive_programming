@@ -11,10 +11,10 @@
 (let ((prove:*enable-colors* nil))
   (let ((l (treap::make-treap 1 :sum 1))
         (r (treap::make-treap 2 :sum 2)))
-    (prove:is (treap::%get-cnt l r) 2)
-    (prove:is (treap::%get-sum l r) 3)
-    (prove:is (treap::%get-cnt l nil) 1)
-    (prove:is (treap::%get-sum l nil) 1x)))
+    (prove:is (treap::%plus-cnt l r) 2)
+    (prove:is (treap::%plus-sum l r) 3)
+    (prove:is (treap::%plus-cnt l nil) 1)
+    (prove:is (treap::%plus-sum l nil) 1)))
 
 #+nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))

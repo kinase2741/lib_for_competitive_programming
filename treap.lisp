@@ -18,13 +18,23 @@
 
 (defun list->treap (list) (make-treap 1))
 
-(defun %get-cnt (l r)
-  (+ (treap-cnt l)
-     (treap-cnt r)))
+(defun %get-cnt (treap)
+  (if (null treap)
+      0
+      (treap-cnt treap)))
 
-(defun %get-sum (l r)
-  (+ (treap-sum l)
-     (treap-sum r)))
+(defun %get-sum (treap)
+  (if (null treap)
+      0
+      (treap-sum treap)))
+
+(defun %plus-cnt (l r)
+  (+ (%get-cnt l)
+     (%get-cnt r)))
+
+(defun %plus-sum (l r)
+  (+ (%get-sum l)
+     (%get-sum r)))
 
 (defun merge (l r)
   (let ((new-cnt (%get-cnt l r))

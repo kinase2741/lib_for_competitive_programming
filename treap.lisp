@@ -27,10 +27,8 @@
      (treap-sum r)))
 
 (defun merge (l r)
-  (let ((new-cnt (+ (treap-cnt l)
-                    (treap-cnt r)))
-        (new-sum (+ (treap-value l)
-                    (treap-value r))))
+  (let ((new-cnt (%get-cnt l r))
+        (new-sum (%get-sum l r)))
     (if (> (treap-priority l)
            (treap-priority r))
         ;; lが上

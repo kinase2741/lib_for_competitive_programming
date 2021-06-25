@@ -12,6 +12,7 @@
 
   (let ((l (treap::make-treap 1 :sum 1))
         (r (treap::make-treap 2 :sum 2)))
+    (prove:is 2 (treap::%get-cnt l r))
     (prove:is 3 (treap::%get-sum l r))))
 
 #+nil

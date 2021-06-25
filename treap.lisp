@@ -6,7 +6,7 @@
 
 (in-package  #:treap)
 
-(defstruct (treap (:constructor make-treap (value &key (l nil) (r nil) (cnt 1) (sum 0))))
+(defstruct (treap (:constructor make-treap (value &key (l nil) (r nil) (cnt 1) (sum value))))
   (value value)
   (l nil :type (or null treap))
   (r nil :type (or null treap))

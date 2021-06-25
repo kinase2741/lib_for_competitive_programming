@@ -1,18 +1,20 @@
 (ql:quickload :prove :slient t)
-(pushnew :rove *features*)
+(pushnew :prove *features*)
 
 (defpackage :test/treap
   (:use #:cl
         #:treap)
-  (:import-from #:fiveam))
+  (:import-from #:rove))
 
 (in-package :test/treap)
 
 (let ((prove:*enable-colors* nil))
   (let ((l (treap::make-treap 1 :sum 1))
         (r (treap::make-treap 2 :sum 2)))
-    (prove:is 2 (treap::%get-cnt l r))
-    (prove:is 3 (treap::%get-sum l r))))
+    (prove:is (treap::%get-cnt l r) 2)
+    (prove:is (treap::%get-sum l r) 3)
+    (prove:is (treap::%get-cnt l nil) 1)
+    (prove:is (treap::%get-sum l nil) 1x)))
 
 #+nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))

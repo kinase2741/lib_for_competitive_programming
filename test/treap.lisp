@@ -8,8 +8,10 @@
 
 (in-package :test/treap)
 
+#-nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))
                 (list 1)))
 
+#-nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 2)))
                 (list 2)))

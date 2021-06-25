@@ -8,10 +8,16 @@
 
 (in-package :test/treap)
 
-#-nil
+(let ((prove:*enable-colors* nil))
+
+  (let ((l (treap::make-treap 1 :sum 1))
+        (r (treap::make-treap 2 :sum 2)))
+    (prove:is 3 (treap::%get-sum l r))))
+
+#+nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))
                 (list 1)))
 
-#-nil
+#+nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 2)))
                 (list 2)))

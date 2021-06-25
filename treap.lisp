@@ -46,6 +46,11 @@
                     :cnt new-cnt
                     :sum new-sum))))
 
+(defun split (treap key)
+  "left:  k未満のnodeからなるtreap
+   right: k以上のnodeからなるtreap"
+  nil)
+
 (in-package #:cl-user)
 
 ;; Load file to run tests

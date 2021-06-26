@@ -16,7 +16,14 @@
     (prove:is (treap::%plus-sum l r) 3)
     (prove:is (treap::%plus-cnt l nil) 1)
     (prove:is (treap::%plus-sum l nil) 1)
-    (prove:is (treap::treap->list (treap::list->treap xs)) (sort (copy-seq xs) #'<))))
+    ;; conversion
+    (prove:is (treap::treap->list (treap::list->treap xs)) (sort (copy-seq xs) #'<))
+    ;; insert
+    (prove:is (treap::treap->list (treap::insert nil 0 10))
+              (list 10))
+    ;; remove
+    (prove:is (treap::remove l 0) nil)
+    (prove:is (treap::remove r 0) nil)))
 
 #+nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))

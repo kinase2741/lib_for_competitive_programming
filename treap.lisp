@@ -2,7 +2,8 @@
 
 (defpackage #:treap
   (:use #:cl)
-  (:shadow #:merge))
+  (:shadow #:merge
+           #:remove))
 
 (in-package  #:treap)
 
@@ -98,6 +99,20 @@
          (let ((res-l (merge (treap-l treap)
                              new-l)))
            (values res-l new-r)))))))
+
+(defun insert (treap key value)
+  (multiple-value-bind (l r)
+      (split treap key)
+    (merge (merge l (make-treap value :sum value))
+           r)))
+
+(defun remove (treap key)
+  (multiple-value-bind (l c-r)
+      (split treap key)
+    (multiple-value-bind (c r)
+        (split c-r (1+ key))
+      (declare (ignore c))
+      (merge l r))))
 
 (in-package #:cl-user)
 

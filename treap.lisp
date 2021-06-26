@@ -37,6 +37,9 @@
      (%get-sum r)))
 
 (defun merge (l r)
+  (when (or (null l)
+            (null r))
+    (return-from merge (or l r)))
   (let ((new-cnt (%plus-cnt l r))
         (new-sum (%plus-sum l r)))
     (if (> (treap-priority l)

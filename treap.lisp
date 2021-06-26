@@ -14,7 +14,18 @@
   (cnt cnt)
   (sum sum))
 
-(defun treap->list (treap) (list 1))
+(defun treap->list (treap)
+  "デバッグ用。O(n)"
+  (let ((res nil))
+    (labels ((%traverse (node)
+               ;; 再帰的にpush
+               (when node
+                 (%traverse (treap-l node))
+                 (push (treap-value node)
+                       res)
+                 (%traverse (treap-r node)))))
+      (%traverse treap)
+      (sort (copy-seq res) #'<))))
 
 (defun list->treap (list) (make-treap 1))
 

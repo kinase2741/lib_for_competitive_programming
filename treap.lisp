@@ -59,8 +59,8 @@
 (defun split (treap key)
   "left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
-  ;; Ignore null
   (cond
+    ((null treap) (values nil nil))
     ((<= (%get-cnt treap) key)
      (multiple-value-bind (new-l new-r)
          (split (treap-l treap)

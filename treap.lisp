@@ -83,7 +83,8 @@
    right: k以上のnodeからなるtreap"
   (cond
     ((null treap) (values nil nil))
-    ((>= (%get-cnt (treap-l treap)) key)
+    ((> (%get-cnt (treap-l treap)) key)
+     ;; cntが十分ある => 左
      (multiple-value-bind (new-l new-r)
          (split (treap-l treap)
                 key)
@@ -92,8 +93,7 @@
 
     (:else
      (let ((new-key (- key
-                       (%get-cnt (treap-l treap))
-                       1)))
+                       (%get-cnt (treap-l treap)))))
        (multiple-value-bind (new-l new-r)
            (split (treap-r treap)
                   new-key)
@@ -109,9 +109,9 @@
 
 (defun remove (treap key)
   (multiple-value-bind (l c-r)
-      (split treap key)
+      (split treap (1- key))
     (multiple-value-bind (c r)
-        (split c-r (1+ key))
+        (split c-r key)
       (let ((res (merge l r)))
         (values res c)))))
 

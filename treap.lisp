@@ -27,7 +27,13 @@
       (%traverse treap)
       (sort (copy-seq res) #'<))))
 
-(defun list->treap (list) (make-treap 1))
+(defun list->treap (list)
+  "デバッグ用。O(n)"
+  (let ((xs (sort (copy-seq list) #'<)))
+    (reduce (lambda (treap x)
+              (merge treap (make-treap x :sum x)))
+            xs
+            :initial-value nil)))
 
 (defun %get-cnt (treap)
   (if (null treap)

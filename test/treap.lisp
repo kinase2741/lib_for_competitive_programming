@@ -23,7 +23,10 @@
               (list 10))
     ;; remove
     (prove:is (treap::remove l 0) nil)
-    (prove:is (treap::remove r 0) nil)))
+    (prove:is (treap::remove r 0) nil)
+    ;; ref
+    (prove:is (treap::ref l 0) 1)
+    (prove:is (treap::ref r 0) 2)))
 
 #+nil
 (rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))

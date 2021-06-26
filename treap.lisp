@@ -3,7 +3,8 @@
 (defpackage #:treap
   (:use #:cl)
   (:shadow #:merge
-           #:remove))
+           #:remove
+           #:ref))
 
 (in-package  #:treap)
 
@@ -82,7 +83,7 @@
    right: k以上のnodeからなるtreap"
   (cond
     ((null treap) (values nil nil))
-    ((<= (%get-cnt treap) key)
+    ((>= (%get-cnt (treap-l treap)) key)
      (multiple-value-bind (new-l new-r)
          (split (treap-l treap)
                 key)
@@ -111,8 +112,15 @@
       (split treap key)
     (multiple-value-bind (c r)
         (split c-r (1+ key))
-      (declare (ignore c))
-      (merge l r))))
+      (let ((res (merge l r)))
+        (values res c)))))
+
+(defun ref (treap key)
+  (multiple-value-bind (_removed center)
+      (remove treap key)
+    (declare (ignore _removed))
+    (and center
+         (treap-value center))))
 
 (in-package #:cl-user)
 

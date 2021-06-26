@@ -82,16 +82,17 @@
   "left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
   ;; TODO: 何かしらバグっている
-  (princ key)
-  (terpri)
   (cond
     ((null treap) (values nil nil))
-    ((> (%get-cnt (treap-l treap)) key)
+    ((>= (%get-cnt (treap-l treap)) key)
      ;; cntが十分ある => 左
      (multiple-value-bind (new-l new-r)
          (split (treap-l treap)
                 key)
-       (let ((res-r (merge new-r (treap-r treap))))
+       (let* ((r (merge (make-treap (treap-value treap)
+                                    :sum (treap-value treap))
+                        (treap-r treap)))
+              (res-r (merge new-r r)))
          (values new-l res-r))))
     (:else
      ;; 右
@@ -100,8 +101,11 @@
        (multiple-value-bind (new-l new-r)
            (split (treap-r treap)
                   new-key)
-         (let ((res-l (merge (treap-l treap)
-                             new-l)))
+         (let* ((l (merge (treap-l treap)
+                          (make-treap (treap-value treap)
+                                      :sum (treap-value treap))))
+                (res-l (merge l
+                              new-l)))
            (values res-l new-r)))))))
 
 (defun insert (treap key value)

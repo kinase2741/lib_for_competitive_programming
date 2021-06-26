@@ -81,6 +81,9 @@
 (defun split (treap key)
   "left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
+  ;; TODO: 何かしらバグっている
+  (princ key)
+  (terpri)
   (cond
     ((null treap) (values nil nil))
     ((> (%get-cnt (treap-l treap)) key)
@@ -90,8 +93,8 @@
                 key)
        (let ((res-r (merge new-r (treap-r treap))))
          (values new-l res-r))))
-
     (:else
+     ;; 右
      (let ((new-key (- key
                        (%get-cnt (treap-l treap)))))
        (multiple-value-bind (new-l new-r)

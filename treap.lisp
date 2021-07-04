@@ -125,6 +125,7 @@
            r)))
 
 (defun remove (treap key)
+  ;; FIXME: ky道がおかしい
   (multiple-value-bind (l c-r)
       (split treap (1- key))
     (multiple-value-bind (c r)
@@ -165,12 +166,21 @@
       (rove:ok (= (%plus-cnt xs-treap
                              ys-treap)
                   15)))
-    (rove:testing "ref"
+    (rove:testing "split"
       (rove:ok (equalp (mapcar #'treap->list
                                (multiple-value-list
                                 (split ws-treap 2)))
                        '((1 3)
-                         (5 7 10)))))))
+                         (5 7 10)))))
+    (rove:testing "insert"
+      (rove:ok (equal (treap->list (insert ws-treap
+                                           2
+                                           11))
+                      '(1 3 11 5 7 10))))
+    #+nil
+    (rove:testing "remove"
+      (rove:ok (equal (treap->list (remove ws-treap 2))
+                      '(1 3 7 10))))))
 
 #+swank
 (rove:run-suite *package*)

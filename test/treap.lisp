@@ -21,35 +21,32 @@
     (prove:is (treap::%plus-sum l nil) 1)
     ;; merge
     (prove:is (treap::treap->list (treap::merge xx yy))
-              '(1 2 3 4))
+              '(2 1 4 3))
 
     ;; split
     (prove:is (multiple-value-bind (l r)
                   (treap::split ex1 2)
                 (list (treap::treap->list l)
                       (treap::treap->list r)))
-              '((1 2)
-                (3 4)))
+              '((1 4)
+                (2 3)))
 
     ;; conversion
-    (prove:is (treap::treap->list (treap::list->treap xs)) (sort (copy-seq xs) #'<))
+    (prove:is (treap::treap->list (treap::list->treap xs))
+              xs)
     ;; insert
-    (prove:is (treap::treap->list (treap::insert nil 0 10))
-              (list 10))
+    (prove:is (treap::treap->list
+               (treap::insert
+                (treap::insert nil 0 11)
+                1
+                10))
+              '(11 10))
     ;; remove
-    (prove:is (treap::remove l 0) nil)
-    (prove:is (treap::remove r 0) nil)
+    (prove:is (treap::treap->list (treap::remove l 0))
+              nil)
     (prove:is (treap::treap->list
                (treap::remove ex1 2))
-              (list 2 4 1 4))
+              '(1 4 3))
     ;; ref
     (prove:is (treap::ref l 1) 1)
     (prove:is (treap::ref r 1) 2)))
-
-#+nil
-(rove:ok (equal (treap::treap->list (treap::list->treap (list 1)))
-                (list 1)))
-
-#+nil
-(rove:ok (equal (treap::treap->list (treap::list->treap (list 2)))
-                (list 2)))

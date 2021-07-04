@@ -27,11 +27,11 @@
                        res)
                  (%traverse (treap-r node)))))
       (%traverse treap)
-      (sort (copy-seq res) #'<))))
+      (reverse res))))
 
 (defun list->treap (list)
   "デバッグ用。O(n)"
-  (let ((xs (sort (copy-seq list) #'<)))
+  (let ((xs (copy-seq list)))
     (reduce (lambda (treap x)
               (merge treap (make-treap x :sum x)))
             xs
@@ -81,7 +81,6 @@
 (defun split (treap key)
   "left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
-  ;; TODO: 何かしらバグっている
   (cond
     ((null treap) (values nil nil))
     ((>= (%get-cnt (treap-l treap)) key)
@@ -109,6 +108,7 @@
            (values res-l new-r)))))))
 
 (defun insert (treap key value)
+  ;; TODO: てすと
   (multiple-value-bind (l r)
       (split treap key)
     (merge (merge l (make-treap value :sum value))

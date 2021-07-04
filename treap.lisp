@@ -81,6 +81,9 @@
 (defun split (treap key)
   "left:  k未満のnodeからなるtreap
    right: k以上のnodeからなるtreap"
+  ;; FIXME:
+  ;;   たまに壊れる
+  ;;   splitの位置がずれてる？
   (cond
     ((null treap) (values nil nil))
     ((>= (%get-cnt (treap-l treap)) key)
@@ -118,7 +121,9 @@
            (values res-l new-r)))))))
 
 (defun insert (treap key value)
-  ;; TODO: てすと
+  ;; FIXME:
+  ;;   たまに壊れる
+  ;;   splitの位置がずれてる？
   (multiple-value-bind (l r)
       (split treap key)
     (merge (merge l (make-treap value :sum value))

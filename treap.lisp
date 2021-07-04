@@ -90,9 +90,11 @@
                 key)
        (let* ((r (merge (make-treap (treap-value treap)
                                     :sum (- (%get-sum treap)
-                                            (%get-sum (treap-l treap)))
+                                            (%get-sum (treap-l treap))
+                                            (treap-value treap))
                                     :cnt (- (%get-cnt treap)
-                                            (%get-cnt (treap-l treap))))
+                                            (%get-cnt (treap-l treap))
+                                            1))
                         (treap-r treap)))
               (res-r (merge new-r r)))
          (values new-l res-r))))
@@ -106,9 +108,11 @@
          (let* ((l (merge (treap-l treap)
                           (make-treap (treap-value treap)
                                       :sum (- (%get-sum treap)
-                                              (%get-sum (treap-r treap)))
+                                              (%get-sum (treap-r treap))
+                                              (treap-value treap))
                                       :cnt (- (%get-cnt treap)
-                                              (%get-cnt (treap-r treap))))))
+                                              (%get-cnt (treap-r treap))
+                                              1))))
                 (res-l (merge l
                               new-l)))
            (values res-l new-r)))))))
@@ -160,7 +164,13 @@
     (rove:testing "plus-cnt"
       (rove:ok (= (%plus-cnt xs-treap
                              ys-treap)
-                  15)))))
+                  15)))
+    (rove:testing "ref"
+      (rove:ok (equalp (mapcar #'treap->list
+                               (multiple-value-list
+                                (split ws-treap 2)))
+                       '((1 3)
+                         (5 7 10)))))))
 
 #+swank
 (rove:run-suite *package*)

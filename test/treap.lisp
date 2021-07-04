@@ -1,5 +1,4 @@
-(ql:quickload :prove :slient t)
-(pushnew :prove *features*)
+(ql:quickload :rove :slient t)
 
 (defpackage :test/treap
   (:use #:cl
@@ -8,7 +7,7 @@
 
 (in-package :test/treap)
 
-(let ((prove:*enable-colors* nil))
+(let ((rove:*enable-colors* nil))
   (let ((l (treap::make-treap 1 :sum 1))
         (r (treap::make-treap 2 :sum 2))
         (xx (treap::list->treap (list 2 1)))

@@ -129,8 +129,34 @@
     (and center
          (treap-value center))))
 
+
+#+swank
+(rove:deftest test-treap
+  (let* ((xs (loop repeat 5 collect (random 100)))
+         (ys (loop repeat 10 collect (random 100)))
+         (zs (loop repeat 20 collect (random 100)))
+         (ws (list 1 3 5 7 10))
+         (xs-treap (list->treap xs))
+         (ys-treap (list->treap ys))
+         (zs-treap (list->treap zs))
+         (ws-treap (list->treap ws)))
+    (rove:testing "Testing equality"
+      (flet ((convert (list)
+               (treap->list (list->treap list))))
+        (rove:ok (equal (convert xs)
+                        xs))))
+    (rove:testing "get-cnt"
+      (rove:ok (= (%get-cnt ys-treap)
+                  10)))
+    (rove:testing "get-sum"
+      (rove:ok (= (%get-sum ws-treap)
+                  26)))
+    (rove:testing "plus-cnt"
+      (rove:ok (= (%plus-cnt xs-treap
+                             ys-treap)
+                  15)))))
+
+#+swank
+(rove:run-suite *package*)
+
 (in-package #:cl-user)
-
-;; Load file to run tests
-
-#+swank (load (merge-pathnames "test/treap.lisp" (truename ".")))

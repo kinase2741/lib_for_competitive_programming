@@ -2,6 +2,8 @@
   (:use :cl)
   (:nicknames :st))
 
+(in-package #:st)
+
 (defstruct (sqrt-tree (:conc-name st-)
                       (:constructor %make-st))
   (main nil
@@ -12,6 +14,27 @@
   (op nil :type function)
   (initial-element nil :type fixnum)
   (identity-element nil :type fixnum))
+
+(defmethod print-object ((obj sqrt-tree)
+                         s)
+  (with-slots (main sub interval identity-element) obj
+    (let ((n (length main))
+          (init nil))
+      (fresh-line s)
+      (princ "#SQRT-TREE(" s)
+      (dotimes (i n)
+        (let* ((k (floor i interval))
+               (sub-val (aref sub k)))
+          (cond
+            (init
+             (princ #\Space s))
+            (:else
+             (setf init t)))
+          (princ (if (eql sub-val identity-element)
+                     (aref main i)
+                     sub-val)
+                 s)))
+      (princ ")" s))))
 
 (defun build (size &Key (op #'+) (initial-element 0) (identity-element 0))
   (unless op
@@ -63,5 +86,5 @@
       (decf r)
       (setf (aref main r) value))
     (while (< l r)
-      (setf (aref sub l) value)
+      (setf (aref sub (floor l m)) value)
       (incf l m))))

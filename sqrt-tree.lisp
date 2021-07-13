@@ -1,6 +1,9 @@
 (defpackage sqrt-tree
   (:use :cl)
-  (:nicknames :st))
+  (:nicknames :st)
+  (:export #:build
+           #:fold
+           #:update))
 
 (in-package #:st)
 
@@ -15,6 +18,23 @@
   (initial-element nil :type fixnum)
   (identity-element nil :type fixnum))
 
+(defun propagate (st idx)
+  "main[idx]の値を使う前に呼ぶ関数
+   sub[idx//interval]で遅延している値をmainに反映する
+   sub[idx//interval]はresetされる"
+  (declare (sqrt-tree st)
+           ((integer 0 #.most-positive-fixnum) idx))
+  (with-slots (main sub interval identity-element) st
+    (let* ((sub-idx (floor idx interval))
+           (new-value (aref sub sub-idx))
+           (idx-begin (* sub-idx interval))
+           (idx-end (min (length main) (* (1+ sub-idx) interval))))
+      (flet ((%propagate! (index)
+               (setf (aref main index) new-value)))
+        (loop for i from idx-begin below idx-end
+              do (%propagate! i))
+        (setf (aref sub sub-idx) identity-element)))))
+
 (defmethod print-object ((obj sqrt-tree)
                          s)
   (with-slots (main sub interval identity-element) obj
@@ -23,17 +43,14 @@
       (fresh-line s)
       (princ "#SQRT-TREE(" s)
       (dotimes (i n)
-        (let* ((k (floor i interval))
-               (sub-val (aref sub k)))
-          (cond
-            (init
-             (princ #\Space s))
-            (:else
-             (setf init t)))
-          (princ (if (eql sub-val identity-element)
-                     (aref main i)
-                     sub-val)
-                 s)))
+        (cond
+          (init
+           (princ #\Space s))
+          (:else
+           (setf init t)))
+        (propagate obj i)
+        (princ (aref main i)
+               s))
       (princ ")" s))))
 
 (defun build (size &Key (op #'+) (initial-element 0) (identity-element 0))
@@ -59,11 +76,13 @@
   (with-slots (main sub interval op identity-element) st
     (let ((res identity-element))
       (declare (fixnum res))
+      (propagate st l)
       (while (and (< l r)
                   (not (zerop (rem l interval))))
         (setf res
               (funcall op res (aref main l)))
         (incf l))
+      (propagate st (1- r))
       (while (and (< l r)
                   (not (zerop (rem r interval))))
         (decf r)
@@ -77,10 +96,12 @@
   (declare (sqrt-tree st)
            ((integer 0 #.most-positive-fixnum) l r))
   (with-slots (main sub (m interval)) st
+    (propagate st l)
     (while (and (< l r)
                 (not (zerop (rem l m))))
       (setf (aref main l) value)
       (incf l))
+    (propagate st (1- r))
     (while (and (< l r)
                 (not (zerop (rem r m))))
       (decf r)

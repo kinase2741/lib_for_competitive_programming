@@ -29,7 +29,30 @@
                 :op op
                 :e e))))
 
-(defun propagate (st idx))
+(defun %size (st)
+  (length (st-main st)))
+
+(defun %sub-idx (st idx)
+  (with-slots (k) st
+    (floor idx k)))
+
+(defun %%update! (st i)
+  (with-slots (main) st
+    nil))
+
+(defun %update! (st idx)
+  (with-slots (k) st
+    (let* ((sub-idx (%sub-idx st idx))
+           (idx-begin (* sub-idx k))
+           (idx-end (max (+ idx-begin k))))
+      (loop for i from idx-begin below idx-end
+            do (%%update! st i)))))
+
+(defun %propagate (st idx)
+  (with-slots (k e) st
+    (let* ((sub-idx (floor idx k)))
+      (unless (= e (aref update-lazy sub-idx))
+        (%update! st idx)))))
 
 (defun update (st l r))
 

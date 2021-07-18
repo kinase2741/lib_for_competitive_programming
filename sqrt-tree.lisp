@@ -53,10 +53,14 @@
         (setf (aref update-lazy sub-idx)
               e)))))
 
+(defun lazy-p (st sub-idx)
+  (with-slots (update-lazy e) st
+    (/= e (aref update-lazy sub-idx))))
+
 (defun %propagate-lazy (st idx)
   (with-slots (update-lazy k e) st
     (let* ((sub-idx (%sub-idx st idx)))
-      (unless (= e (aref update-lazy sub-idx))
+      (when (lazy-p st sub-idx)
         (%propagate! st idx)))))
 
 (defun %update-main! (st idx value)

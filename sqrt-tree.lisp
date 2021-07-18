@@ -146,4 +146,5 @@
           (%update-res! (aref main r)))
         (while (< l r)
           (%update-res! (aref op-acc l))
-          (incf l k))))))
+          (incf l k))
+        res))))

@@ -3,7 +3,8 @@
   (:nicknames :st)
   (:export #:build
            #:fold
-           #:update))
+           #:update
+           #:range-update))
 
 (in-package #:st)
 
@@ -148,6 +149,8 @@
           (decf r)
           (%update-res! (aref main r)))
         (while (< l r)
-          (%update-res! (aref op-acc l))
+          (%update-res! (aref op-acc (%sub-idx st l)))
           (incf l k))
         res))))
+
+(in-package #:cl-user)

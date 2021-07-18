@@ -82,6 +82,17 @@
                      (funcall op tmp i)))
       (setf (aref op-acc sub-idx) tmp))))
 
+(defun %update-lazy! (st idx value)
+  (with-slots (update-lazy k) st
+    (let ((sub-idx (%sub-idx st idx)))
+      (setf (aref update-lazy sub-idx)
+            value))))
+
+(defun %update-op-acc! (st idx value)
+  (with-slots (op-acc k) st
+    (let ((sub-idx (%sub-idx st idx)))
+      (setf (aref op-acc sub-idx) value))))
+
 (defmacro while (test &body body)
   `(loop while ,test
          do ,@body))
@@ -106,6 +117,7 @@
         (%update-main! st r value))
       (%propagate-op-acc! st end)
       (while (< l r)
+        (%update-lazy! st l value)
         (%update-op-acc! st l value)
         (incf l k)))))
 

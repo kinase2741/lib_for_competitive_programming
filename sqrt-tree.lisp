@@ -13,6 +13,8 @@
    :type (simple-array fixnum (*)))
   (sub nil
    :type (simple-array fixnum (*)))
+  (lazy nil
+   :type (simple-array boolean (*)))
   (interval nil :type fixnum)
   (op nil :type function)
   (initial-element nil :type fixnum)
@@ -24,16 +26,17 @@
    sub[idx//interval]はresetされる"
   (declare (sqrt-tree st)
            ((integer 0 #.most-positive-fixnum) idx))
-  (with-slots (main sub interval identity-element) st
+  (with-slots (main sub lazy interval identity-element) st
     (let* ((sub-idx (floor idx interval))
            (new-value (aref sub sub-idx))
            (idx-begin (* sub-idx interval))
            (idx-end (min (length main) (* (1+ sub-idx) interval))))
-      (flet ((%propagate! (index)
-               (setf (aref main index) new-value)))
-        (loop for i from idx-begin below idx-end
-              do (%propagate! i))
-        (setf (aref sub sub-idx) identity-element)))))
+      (when (aref lazy sub-idx)
+        (flet ((%propagate! (index)
+                 (setf (aref main index) new-value)))
+          (loop for i from idx-begin below idx-end
+                do (%propagate! i))
+          (setf (aref sub sub-idx) identity-element))))))
 
 (defmethod print-object ((obj sqrt-tree)
                          s)
@@ -62,7 +65,10 @@
                                      :initial-element initial-element)
               :sub (make-array sub-size :element-type 'fixnum
                                         :initial-element identity-element)
-              :interval interval              :op op
+              :lazy (make-array sub-size :element-type 'boolean
+                                         :initial-element nil)
+              :interval interval
+              :op op
               :initial-element initial-element
               :identity-element identity-element)))
 

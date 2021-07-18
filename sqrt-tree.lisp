@@ -46,6 +46,7 @@
     (let* ((sub-idx (%sub-idx st idx))
            (idx-begin (* sub-idx k))
            (idx-end (max (+ idx-begin k))))
+      ;; 初期値でなければ伝搬する
       (unless (= e (aref update-lazy sub-idx))
         (loop for i from idx-begin below idx-end
               do (%%propagate! st i))
@@ -57,6 +58,10 @@
     (let* ((sub-idx (%sub-idx st idx)))
       (unless (= e (aref update-lazy sub-idx))
         (%propagate! st idx)))))
+
+(defmacro while (test &body body)
+  `(loop while ,test
+         do ,@body))
 
 (defun update (st l r))
 

@@ -63,6 +63,22 @@
   `(loop while ,test
          do ,@body))
 
-(defun update (st l r))
+(defun update (st l r)
+  (with-slots (k) st
+    (let ((ll (* k (ceiling l k)))
+          (rr (* k (floor r k))))
+      (%propagate st l)
+      (%propagate st r)
+      (while (and (< l ll)
+                  (< l r))
+        (%update-main! st l)
+        (incf l))
+      (while (and (< rr r)
+                  (< l r))
+        (decf r)
+        (%udpate-main! st r))
+      (while (< l r)
+        (%update-op-acc! st l)
+        (incf l)))))
 
 (defun fold (st l r))

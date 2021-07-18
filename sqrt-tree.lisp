@@ -29,6 +29,25 @@
                   res))))
       (sort res #'< :key #'first))))
 
+#+nil
+(let ((xs (list 1 4 6))
+      (ys (list 3 1 5))
+      (st (build 7)))
+  (dolist (x xs)
+    (update st x 1))
+  (assert (equal (dump st)
+                 '((1 1)
+                   (4 1)
+                   (6 1))))
+  (dolist (y ys)
+    (update st y 2))
+  (assert (equal (dump st)
+                 '((1 2)
+                   (3 2)
+                   (4 1)
+                   (5 2)
+                   (6 1)))))
+
 (defun build (size &key (op #'+) (op-lazy #'*) (e 0))
   (let* ((k (isqrt size))
          (sub-size (ceiling size k)))
@@ -46,9 +65,22 @@
 (defun %size (st)
   (length (st-main st)))
 
+#+nil
+(let ((st (st:build 22)))
+  (assert (= (%size st)
+             22)))
+
 (defun %sub-idx (st idx)
   (with-slots (k) st
     (floor idx k)))
+
+#+nil
+(let ((st (st:build 20)))
+  (assert (= (st::st-k st) 4))
+  (assert (= (st::%sub-idx st 5)
+             1))
+  (assert (= (st::%sub-idx st 10)
+             2)))
 
 (defun %%propagate! (st i)
   (with-slots (main update-lazy) st

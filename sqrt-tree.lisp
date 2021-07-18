@@ -64,6 +64,7 @@
          do ,@body))
 
 (defun update (st l r value)
+  "[l,r)をvalueで更新する"
   (with-slots (k) st
     (let ((begin l)
           (end r)

@@ -14,9 +14,10 @@
   (update-lazy nil :type (simple-array fixnum (*)))
   (k 0 :type fixnum)
   (op nil :type function)
+  (op-lazy nil :type function)
   (e 0 :type fixnum))
 
-(defun build (size &key (op #'+) (e 0))
+(defun build (size &key (op #'+) (op-lazy #'*) (e 0))
   (let* ((k (isqrt size))
          (sub-size (ceiling size k)))
     (flet ((%make-arr (size)
@@ -27,6 +28,7 @@
                 :update-lazy (%make-arr sub-size)
                 :k k
                 :op op
+                :op-lazy op-lazy
                 :e e))))
 
 (defun %size (st)
@@ -89,9 +91,10 @@
             value))))
 
 (defun %update-op-acc! (st idx value)
-  (with-slots (op-acc k) st
-    (let ((sub-idx (%sub-idx st idx)))
-      (setf (aref op-acc sub-idx) value))))
+  (with-slots (op-acc op-lazy k) st
+    (let* ((sub-idx (%sub-idx st idx))
+           (acc-value (funcall op-lazy value k)))
+      (setf (aref op-acc sub-idx) acc-value))))
 
 (defmacro while (test &body body)
   `(loop while ,test

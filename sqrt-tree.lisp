@@ -6,3 +6,11 @@
            #:update))
 
 (in-package #:st)
+
+(defun build (size &key (op #'+) (e 0)))
+
+(defun propagate (st idx))
+
+(defun update (st l r))
+
+(defun fold (st l r))

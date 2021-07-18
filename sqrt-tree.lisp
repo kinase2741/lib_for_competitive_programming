@@ -47,8 +47,8 @@
 (defun %propagate! (st idx)
   (with-slots (update-lazy k e) st
     (let* ((sub-idx (%sub-idx st idx))
-           (idx-begin (* sub-idx k))
-           (idx-end (max (+ idx-begin k))))
+           (idx-begin (min (1- size) (* sub-idx k)))
+           (idx-end (min size (+ idx-begin k))))
       ;; 初期値でなければ伝搬する
       (unless (= e (aref update-lazy sub-idx))
         (loop for i from idx-begin below idx-end
@@ -75,8 +75,9 @@
   ;; idxの該当するブロックに対応するop-accを更新
   (with-slots (main op-acc k e op) st
     (let* ((sub-idx (%sub-idx st idx))
-           (idx-begin (* k sub-idx))
-           (idx-end (max (%size st) (+ idx-begin k)))
+           (size (%size st))
+           (idx-begin (min (1- size) (* k sub-idx)))
+           (idx-end (min size (+ idx-begin k)))
            (tmp e))
       (loop for i from idx-begin below idx-end
             ;; 伝搬済みのはずなのでmainをみればOK

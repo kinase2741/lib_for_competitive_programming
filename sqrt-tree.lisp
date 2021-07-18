@@ -36,27 +36,27 @@
   (with-slots (k) st
     (floor idx k)))
 
-(defun %%update! (st i)
+(defun %%propagate! (st i)
   (with-slots (main update-lazy) st
     (setf (aref main i)
           (aref update-lazy (%sub-idx st i)))))
 
-(defun %update! (st idx)
+(defun %propagate! (st idx)
   (with-slots (update-lazy k e) st
     (let* ((sub-idx (%sub-idx st idx))
            (idx-begin (* sub-idx k))
            (idx-end (max (+ idx-begin k))))
       (unless (= e (aref update-lazy sub-idx))
         (loop for i from idx-begin below idx-end
-              do (%%update! st i))
+              do (%%propagate! st i))
         (setf (aref update-lazy sub-idx)
               e)))))
 
 (defun %propagate (st idx)
-  (with-slots (k e) st
-    (let* ((sub-idx (floor idx k)))
+  (with-slots (update-lazy k e) st
+    (let* ((sub-idx (%sub-idx st idx)))
       (unless (= e (aref update-lazy sub-idx))
-        (%update! st idx)))))
+        (%propagate! st idx)))))
 
 (defun update (st l r))
 

@@ -87,6 +87,10 @@
     (setf (aref main i)
           (aref update-lazy (%sub-idx st i)))))
 
+(defun lazy-p (st sub-idx)
+  (with-slots (update-lazy e) st
+    (/= e (aref update-lazy sub-idx))))
+
 (defun %propagate! (st idx)
   (with-slots (update-lazy k e) st
     (let* ((sub-idx (%sub-idx st idx))
@@ -94,21 +98,16 @@
            (idx-begin (min (1- size) (* sub-idx k)))
            (idx-end (min size (+ idx-begin k))))
       ;; 初期値でなければ伝搬する
-      (unless (= e (aref update-lazy sub-idx))
+      (when (lazy-p st sub-idx)
         (loop for i from idx-begin below idx-end
               do (%%propagate! st i))
         (setf (aref update-lazy sub-idx)
               e)))))
 
-(defun lazy-p (st sub-idx)
-  (with-slots (update-lazy e) st
-    (/= e (aref update-lazy sub-idx))))
-
 (defun %propagate-lazy (st idx)
   (with-slots (update-lazy k e) st
     (let* ((sub-idx (%sub-idx st idx)))
-      (when (lazy-p st sub-idx)
-        (%propagate! st idx)))))
+      (%propagate! st idx))))
 
 (defun %update-main! (st idx value)
   (setf (aref (st-main st)

@@ -59,6 +59,11 @@
       (unless (= e (aref update-lazy sub-idx))
         (%propagate! st idx)))))
 
+(defun %update-main! (st idx value)
+  (setf (aref (st-main st)
+              idx)
+        value))
+
 (defmacro while (test &body body)
   `(loop while ,test
          do ,@body))

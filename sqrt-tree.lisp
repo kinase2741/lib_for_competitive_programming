@@ -4,7 +4,8 @@
   (:export #:build
            #:fold
            #:update
-           #:range-update))
+           #:range-update
+           #:dump))
 
 (in-package #:st)
 
@@ -17,6 +18,16 @@
   (op nil :type function)
   (op-lazy nil :type function)
   (e 0 :type fixnum))
+
+(defun dump (st)
+  (with-slots (e) st
+    (let ((res nil))
+      (dotimes (i (%size st))
+        (let ((val (fold st i (1+ i))))
+          (when (/= e val)
+            (push (list i val)
+                  res))))
+      (sort res #'< :key #'first))))
 
 (defun build (size &key (op #'+) (op-lazy #'*) (e 0))
   (let* ((k (isqrt size))
@@ -47,6 +58,7 @@
 (defun %propagate! (st idx)
   (with-slots (update-lazy k e) st
     (let* ((sub-idx (%sub-idx st idx))
+           (size (%size st))
            (idx-begin (min (1- size) (* sub-idx k)))
            (idx-end (min size (+ idx-begin k))))
       ;; 初期値でなければ伝搬する

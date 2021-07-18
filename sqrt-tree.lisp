@@ -53,7 +53,7 @@
         (setf (aref update-lazy sub-idx)
               e)))))
 
-(defun %propagate (st idx)
+(defun %propagate-lazy (st idx)
   (with-slots (update-lazy k e) st
     (let* ((sub-idx (%sub-idx st idx)))
       (unless (= e (aref update-lazy sub-idx))
@@ -70,8 +70,8 @@
           (end r)
           (ll (* k (ceiling l k)))
           (rr (* k (floor r k))))
-      (%propagate st begin)
-      (%propagate st end)
+      (%propagate-lazy st begin)
+      (%propagate-lazy st end)
       (while (and (< l ll)
                   (< l r))
         (%update-main! st l value)

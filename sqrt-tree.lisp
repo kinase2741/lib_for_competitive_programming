@@ -110,9 +110,8 @@
       (%propagate! st idx))))
 
 (defun %update-main! (st idx value)
-  (setf (aref (st-main st)
-              idx)
-        value))
+  (with-slots (main) st
+    (setf (aref main idx) value)))
 
 (defun %propagate-op-acc! (st idx)
   ;; idxの該当するブロックに対応するop-accを更新

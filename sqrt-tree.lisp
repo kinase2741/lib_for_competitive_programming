@@ -100,7 +100,7 @@
   `(loop while ,test
          do ,@body))
 
-(defun update (st l r value)
+(defun range-update (st l r value)
   "[l,r)をvalueで更新する"
   (with-slots (k) st
     (let ((begin l)
@@ -123,6 +123,9 @@
         (%update-lazy! st l value)
         (%update-op-acc! st l value)
         (incf l k)))))
+
+(defun update (st idx value)
+  (range-update st idx (1+ idx) value))
 
 (defun fold (st l r)
   (with-slots (main k e op op-acc) st

@@ -7,6 +7,15 @@
 
 (in-package #:st)
 
+(defstruct (sqrt-tree (:conc-name st-)
+                      (:constructor %make-st}))
+  (main nil :type (simple-array fixnum (*)))
+  (op-acc nil :type (simple-array fixnum (*)))
+  (update-lazy nil :type (simple-array fixnum (*)))
+  (k 0 :type fixnum)
+  (op nil :type function)
+  (e 0 :type fixnum))
+
 (defun build (size &key (op #'+) (e 0)))
 
 (defun propagate (st idx))

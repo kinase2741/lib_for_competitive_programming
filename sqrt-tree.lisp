@@ -64,6 +64,20 @@
               idx)
         value))
 
+(defun %propagate-op-acc! (st idx)
+  ;; idxの該当するブロックに対応するop-accを更新
+  (with-slots (main op-acc k e op) st
+    (let* ((sub-idx (%sub-idx st idx))
+           (idx-begin (* k sub-idx))
+           (idx-end (max (%size st) (+ idx-begin k)))
+           (tmp e))
+      (loop for i from idx-begin below idx-end
+            ;; 伝搬済みのはずなのでmainをみればOK
+            for value = (aref main i)
+            do (setf tmp
+                     (funcall op tmp i)))
+      (setf (aref op-acc sub-idx) tmp))))
+
 (defmacro while (test &body body)
   `(loop while ,test
          do ,@body))
@@ -85,7 +99,7 @@
       (while (and (< rr r)
                   (< l r))
         (decf r)
-        (%udpate-main! st r value))
+        (%update-main! st r value))
       (%propagate-op-acc! st end)
       (while (< l r)
         (%update-op-acc! st l value)

@@ -15,22 +15,22 @@
    :type (simple-array fixnum (*)))
   (lazy nil
    :type (simple-array boolean (*)))
-  (interval nil :type fixnum)
+  (k nil :type fixnum)
   (op nil :type function)
   (initial-element nil :type fixnum)
   (identity-element nil :type fixnum))
 
 (defun propagate (st idx)
   "main[idx]の値を使う前に呼ぶ関数
-   sub[idx//interval]で遅延している値をmainに反映する
-   sub[idx//interval]はresetされる"
+   sub[idx//k]で遅延している値をmainに反映する
+   sub[idx//k]はresetされる"
   (declare (sqrt-tree st)
            ((integer 0 #.most-positive-fixnum) idx))
-  (with-slots (main sub lazy interval identity-element) st
-    (let* ((sub-idx (floor idx interval))
+  (with-slots (main sub lazy k identity-element) st
+    (let* ((sub-idx (floor idx k))
            (new-value (aref sub sub-idx))
-           (idx-begin (* sub-idx interval))
-           (idx-end (min (length main) (* (1+ sub-idx) interval))))
+           (idx-begin (* sub-idx k))
+           (idx-end (min (length main) (* (1+ sub-idx) k))))
       (when (aref lazy sub-idx)
         (flet ((%propagate! (index)
                  (setf (aref main index) new-value)))
@@ -40,34 +40,23 @@
 
 (defmethod print-object ((obj sqrt-tree)
                          s)
-  (with-slots (main sub interval identity-element) obj
-    (let ((n (length main))
-          (init nil))
-      (fresh-line s)
-      (princ "#SQRT-TREE(" s)
-      (dotimes (i n)
-        (cond
-          (init
-           (princ #\Space s))
-          (:else
-           (setf init t)))
-        (propagate obj i)
-        (princ (aref main i)
-               s))
-      (princ ")" s))))
+  ;; TODO st->listの実装
+  (fresh-line s)
+  (princ "#SQRT-TREE" s)
+  (princ (st->list obj) s))
 
 (defun build (size &Key (op #'+) (initial-element 0) (identity-element 0))
   (unless op
     (error "OP must be supplied."))
-  (let* ((interval (isqrt size))
-         (sub-size (1+ interval)))
+  (let* ((k (isqrt size))
+         (sub-size (1+ k)))
     (%make-st :main (make-array size :element-type 'fixnum
                                      :initial-element initial-element)
               :sub (make-array sub-size :element-type 'fixnum
                                         :initial-element identity-element)
               :lazy (make-array sub-size :element-type 'boolean
                                          :initial-element nil)
-              :interval interval
+              :k k
               :op op
               :initial-element initial-element
               :identity-element identity-element)))
@@ -79,29 +68,29 @@
 (defun fold (st l r)
   (declare (sqrt-tree st)
            ((integer 0 #.most-positive-fixnum) l r))
-  (with-slots (main sub interval op identity-element) st
+  (with-slots (main sub k op identity-element) st
     (let ((res identity-element))
       (declare (fixnum res))
       (propagate st l)
       (while (and (< l r)
-                  (not (zerop (rem l interval))))
+                  (not (zerop (rem l k))))
         (setf res
               (funcall op res (aref main l)))
         (incf l))
       (propagate st (1- r))
       (while (and (< l r)
-                  (not (zerop (rem r interval))))
+                  (not (zerop (rem r k))))
         (decf r)
         (setf res (funcall op res (aref main r))))
       (while (< l r)
-        (setf res (funcall op res (aref sub (floor l interval))))
-        (incf l interval))
+        (setf res (funcall op res (aref sub (floor l k))))
+        (incf l k))
       res)))
 
 (defun update (st value l r)
   (declare (sqrt-tree st)
            ((integer 0 #.most-positive-fixnum) l r))
-  (with-slots (main sub (m interval)) st
+  (with-slots (main sub (m k)) st
     (propagate st l)
     (while (and (< l r)
                 (not (zerop (rem l m))))
